@@ -1,9 +1,13 @@
 import React from "react";
+import { FaRegUserCircle } from "react-icons/fa";
 
 const Header = () => {
   return (
-    <div className="w-screen h-16 items-center flex border-b-2">
-      <div className="h-6 font-semibold">Quiz app</div>
+    <div className="w-screen h-16 items-center flex border-b-2 ">
+      <div className=" font-semibold text-[36px] items-center">Quiz app</div>
+      <div className="text-[26px] ml-450">
+        <FaRegUserCircle />
+      </div>
     </div>
   );
 };

@@ -9,10 +9,10 @@ import {
 
 export function AppSidebar() {
   return (
-    <Sidebar>
+    <Sidebar className="mt-16">
       <div className="flex items-center mx-4 justify-between  gap-20 mt-4 ">
         <div className="font-extrabold h-7">History</div>
-        <SidebarTrigger className="h-6 w-6  " />
+        <SidebarTrigger className="h-6 w-6 " />
       </div>
 
       <SidebarHeader />
