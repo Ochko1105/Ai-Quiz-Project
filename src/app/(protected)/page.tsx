@@ -11,19 +11,37 @@ const Home = () => {
     answer: string;
   };
   const [page, setPage] = useState<string>("test");
-  const [article, setArticle] = useState<string>("");
+  const [articlecontent, setArticlecontent] = useState<string>("");
+  const [articleTitle, setArticleTitle] = useState<string>("");
+  const [articleSummary, setArticleSummary] = useState<string>("");
   const [step, setStep] = useState(0);
   const [generatedtext, setGeneratedtext] = useState<Quistions[]>([]);
+  const HandleOnContent = async () => {
+    const response = await fetch("/api/generate/summary", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ articlecontent }),
+    });
+    const rawData = await response.json();
+    console.log({ rawData });
+    if (rawData.data.length > 1) {
+      setPage("summary");
+    }
+    setArticleSummary(rawData.data);
+  };
   const HandleOnPost = async () => {
     const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ article }),
+      body: JSON.stringify({ articleSummary, articleTitle }),
     });
 
     const rawData = await response.json();
+    console.log({ rawData });
 
     const cleanedText = extractJsonArray(rawData.data || rawData);
     try {
@@ -36,6 +54,17 @@ const Home = () => {
     } catch (e) {
       console.error("JSON parse error:", e);
     }
+  };
+  const DBquiz = async () => {
+    const response = await fetch("/api/generate/quiz", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ generatedtext }),
+    });
+    const result = response.json();
+    console.log("DBquiz", result);
   };
 
   // Regex функц нь гаднаас тусдаа байрлаж болно
@@ -73,6 +102,8 @@ const Home = () => {
               <Input
                 placeholder="Enter a title for your article.."
                 type="text"
+                value={articleTitle}
+                onChange={(e) => setArticleTitle(e.target.value)}
               />
               <div className="mt-5 text-[#71717A] flex gap-2">
                 <img src="/Shape.svg" />
@@ -80,11 +111,42 @@ const Home = () => {
               </div>
               <Textarea
                 placeholder="Paste your article content here..."
-                onChange={(e) => setArticle(e.target.value)}
+                value={articlecontent}
+                onChange={(e) => setArticlecontent(e.target.value)}
               />
               <div className="flex justify-end">
-                <Button onClick={() => HandleOnPost()} className="mt-5 ">
+                <Button onClick={() => HandleOnContent()} className="mt-5 ">
                   Generate summary
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {page === "summary" && (
+        <div className="mt-10">
+          <div className="h-72"></div>
+          <div className="w-[856px] h-fit ml-114  border-2 bg-white">
+            <div className="mx-7 mb-7">
+              <div className="flex gap-2">
+                <img src="/Vector.svg" />
+                <div className="font-bold text-[32px]">
+                  Article Quiz Generator
+                </div>
+              </div>
+
+              <div className="mt-5 text-[#71717A] flex gap-2">
+                <img src="/Shape.svg" />
+                Summarized Content
+              </div>
+              <div className="font-bold mt-4">{articleTitle}</div>
+              <div className="mt-4">{articleSummary}</div>
+              <div className="flex justify-between mt-5">
+                <Button className="bg-white text-black border-2">
+                  See content
+                </Button>
+                <Button onClick={() => HandleOnPost()} className=" ">
+                  Take a quiz
                 </Button>
               </div>
             </div>
@@ -304,7 +366,7 @@ const Home = () => {
               <div>
                 <Button
                   className="bg-white text-black border-2"
-                  onClick={() => setPage("page")}
+                  onClick={() => (setPage("page"), setStep(0), DBquiz())}
                 >
                   X
                 </Button>
