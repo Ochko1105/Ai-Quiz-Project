@@ -6,7 +6,7 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 export async function GET() {
-  const history = await query("SELECT articletitle FROM articles");
+  const history = await query("SELECT articletitle , id FROM articles");
   return Response.json({ data: history });
 }
 
