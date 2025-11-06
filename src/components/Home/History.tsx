@@ -1,13 +1,27 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { LuBookOpen } from "react-icons/lu";
 import { Button } from "../ui/button";
 import { GetHistory } from "@/utilis/get-data";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+type HistoryDataType = {
+  data: ObjHistoryDatatype[];
+};
+type ObjHistoryDatatype = {
+  articletitle: string;
+  articlesummary: string;
+  articlecontent: string;
+};
 
 const History = async ({ ID }: { ID: string }) => {
-  const HistoryData: any = await GetHistory(ID);
-
-  console.log({ HistoryData });
-
+  const result: HistoryDataType = await GetHistory(ID);
+  console.log({ result });
   return (
     <div>
       <div className="w-[628px] h-fit ml-34  border-2 bg-white">
@@ -21,51 +35,35 @@ const History = async ({ ID }: { ID: string }) => {
             <LuBookOpen />
             Summarized content
           </div>
-          <div className="text-[24px] font-bold">Genghis Khan</div>
-          <div>
-            Genghis Khan, born Temüjin around 1162, was the founder of the
-            Mongol Empire. After his father's death, Temüjin's family was left
-            in poverty, and he later killed his half-brother to secure his
-            position. He built alliances with leaders like Jamukha and Toghrul,
-            and despite being defeated in battle and briefly under the Jin
-            dynasty, he rose to power by defeating rivals. By 1206, after
-            overcoming the Naiman tribe and executing Jamukha, Temüjin became
-            the undisputed ruler of the Mongol steppe, eventually leading a
-            series of successful military campaigns that expanded his empire
-            across China and Central Asia.
+          <div className="text-[24px] font-bold">
+            {result.data[0].articletitle}
           </div>
+          <div>{result.data[0].articlesummary}</div>
           <div className="mt-5 text-[#71717A] flex gap-2">
             <img src="/Shape.svg" />
             Article Content
           </div>
           <div className="h-[60px] flex flex-wrap w-[572px] text-ellipsis ">
             <div className=" w-[572px] h-60px] truncate  ">
-              Genghis Khan[a] (born Temüjin; c. 1162 – August 1227), also known
-              as Chinggis Khan,[b] was the founder and first khan of the Mongol
-              Empire. After spending most of his life uniting the Mongol tribes,
-              he launched a series of military campaigns, conquering large parts
-              of China and Central Asia. Born between 1155 and 1167 and given
-              the name Temüjin, he was the eldest child of Yesugei, a Mongol
-              chieftain of the Borjigin clan, and his wife Hö'elün. When Temüjin
-              was eight, his father died and his family was abandoned by its
-              tribe. Reduced to near-poverty, Temüjin killed his older
-              half-brother to secure his familial position. His charismatic
-              personality helped to attract his first followers and to form
-              alliances with two prominent steppe leaders named Jamukha and
-              Toghrul; they worked together to retrieve Temüjin's newlywed wife
-              Börte, who had been kidnapped by raiders. As his reputation grew,
-              his relationship with Jamukha deteriorated into open warfare.
-              Temüjin was badly defeated in c. 1187, and may have spent the
-              following years as a subject of the Jin dynasty; upon reemerging
-              in 1196, he swiftly began gaining power. Toghrul came to view
-              Temüjin as a threat and launched a surprise attack on him in 1203.
-              Temüjin retreated, then regrouped and overpowered Toghrul; after
-              defeating the Naiman tribe and executing Jamukha, he was left as
-              the sole ruler on the Mongolian steppe.
+              {result.data[0].articlecontent}
             </div>
-            <Button className="ml-115 mt-3 bg-white text-black ">
-              See more
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="ml-115 mt-3 bg-white text-black ">
+                  See more
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <div className="">
+                  <DialogHeader>
+                    <DialogTitle>
+                      <div className="text-[24px] font-bold">Genghis Khan</div>
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className=" mt-5 ">{result.data[0].articlecontent}</div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex justify-start">

@@ -1,5 +1,4 @@
 import History from "@/components/Home/History";
-import { Button } from "@/components/ui/button";
 
 import { LuBookOpen } from "react-icons/lu";
 

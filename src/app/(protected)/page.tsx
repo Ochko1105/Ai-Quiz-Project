@@ -10,7 +10,7 @@ const Home = () => {
     options: string[];
     answer: string;
   };
-  const [page, setPage] = useState<string>("test");
+  const [page, setPage] = useState<string>("page");
   const [articlecontent, setArticlecontent] = useState<string>("");
   const [articleTitle, setArticleTitle] = useState<string>("");
   const [articleSummary, setArticleSummary] = useState<string>("");
@@ -71,7 +71,7 @@ const Home = () => {
       {page === "page" && (
         <div className="mt-10">
           <div className="h-72"></div>
-          <div className="w-[856px] h-fit ml-114  border-2 bg-white">
+          <div className="w-[856px] h-fit ml-54  border-2 bg-white">
             <div className="mx-7 mb-7">
               <div className="flex gap-2">
                 <img src="/Vector.svg" />
