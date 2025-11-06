@@ -8,20 +8,22 @@ const ai = new GoogleGenAI({
 
 export async function POST(req: NextRequest) {
   try {
-    const { articlecontent } = await req.json();
+    const { articlecontent, articleTitle } = await req.json();
 
     const prompt = `Please provide a concise summary of the following article: ${articlecontent}`;
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
     });
-    console.log(response.text);
-    await query(`INSERT INTO articles (articlesummary) VALUES ($1)`, [
-      articlecontent,
-    ]);
-
+    await query(
+      `INSERT INTO articles (articletitle, articlecontent ) VALUES ($1,$2)`,
+      [articleTitle, articlecontent]
+    );
+    const id = await query("SELECT id FROM articles ORDER BY id DESC LIMIT 1");
+    console.log({ id });
     return NextResponse.json({
       data: (response as any).text ?? response,
+      id: id,
     });
   } catch (err: any) {
     console.error("POST /api/generate error:", err);

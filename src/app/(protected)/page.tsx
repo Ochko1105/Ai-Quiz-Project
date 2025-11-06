@@ -14,6 +14,7 @@ const Home = () => {
   const [articlecontent, setArticlecontent] = useState<string>("");
   const [articleTitle, setArticleTitle] = useState<string>("");
   const [articleSummary, setArticleSummary] = useState<string>("");
+  const [takeID, setTakeID] = useState<string>("");
   const [step, setStep] = useState(0);
   const [generatedtext, setGeneratedtext] = useState<Quistions[]>([]);
   const HandleOnContent = async () => {
@@ -22,7 +23,7 @@ const Home = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ articlecontent }),
+      body: JSON.stringify({ articlecontent, articleTitle }),
     });
     const rawData = await response.json();
     console.log({ rawData });
@@ -30,6 +31,7 @@ const Home = () => {
       setPage("summary");
     }
     setArticleSummary(rawData.data);
+    setTakeID(rawData.id.rows[0].id);
   };
   const HandleOnPost = async () => {
     const response = await fetch("/api/generate", {
@@ -37,7 +39,7 @@ const Home = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ articleSummary, articleTitle }),
+      body: JSON.stringify({ articleSummary, takeID }),
     });
 
     const rawData = await response.json();
@@ -55,18 +57,6 @@ const Home = () => {
       console.error("JSON parse error:", e);
     }
   };
-  const DBquiz = async () => {
-    const response = await fetch("/api/generate/quiz", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ generatedtext }),
-    });
-    const result = response.json();
-    console.log("DBquiz", result);
-  };
-
   // Regex функц нь гаднаас тусдаа байрлаж болно
   const extractJsonArray = (text: string) => {
     const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -76,7 +66,6 @@ const Home = () => {
     return text.trim();
   };
 
-  console.log({ generatedtext });
   return (
     <div className="bg-accent w-screen h-screen ">
       {page === "page" && (
@@ -195,8 +184,9 @@ const Home = () => {
                         </div>
                       </div>
                       <div className="flex flex-wrap w-fit gap-4 h-fit mt-10 mb-10">
-                        {data.options.map((dat) => (
+                        {data.options.map((dat, index2) => (
                           <Button
+                            key={index2}
                             onClick={() => setStep(1)}
                             className="w-fit bg-white text-black border-2 h-10 hover:text-white"
                           >
@@ -366,7 +356,7 @@ const Home = () => {
               <div>
                 <Button
                   className="bg-white text-black border-2"
-                  onClick={() => (setPage("page"), setStep(0), DBquiz())}
+                  onClick={() => (setPage("page"), setStep(0))}
                 >
                   X
                 </Button>

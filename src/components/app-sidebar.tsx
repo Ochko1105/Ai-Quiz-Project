@@ -37,8 +37,10 @@ export function AppSidebar() {
       <SidebarHeader />
       <SidebarContent>
         <div className="mx-4">
-          {history.map((data) => (
-            <div className="h-6 font-semibold my-2 ">{data.articletitle}</div>
+          {history.map((data, index) => (
+            <div key={index} className="h-6 font-semibold my-2 ">
+              {data.articletitle}
+            </div>
           ))}
         </div>
         <SidebarGroup />
