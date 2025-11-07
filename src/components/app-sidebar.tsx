@@ -31,7 +31,8 @@ export function AppSidebar() {
   console.log({ history });
   const HistoryOnclick = async (data: { id: string }) => {
     const ID = data.id;
-    router.push(`/history?id=${ID}`);
+    // router.push(`/history?id=${ID}`);
+    router.push(`/turshih?search=${ID}`);
   };
 
   return (

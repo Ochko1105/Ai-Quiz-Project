@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
 import React, { useState } from "react";
 
 const Home = () => {
@@ -65,6 +66,9 @@ const Home = () => {
     }
     return text.trim();
   };
+  const HandleOnAnswer = (index: any) => {
+    console.log({ index });
+  };
 
   return (
     <div className="bg-accent w-screen h-screen ">
@@ -75,9 +79,11 @@ const Home = () => {
             <div className="mx-7 mb-7">
               <div className="flex gap-2">
                 <img src="/Vector.svg" />
-                <div className="font-bold text-[32px]">
-                  Article Quiz Generator
-                </div>
+                <Link href="/turshih?search=my-project">
+                  <div className="font-bold text-[32px]">
+                    Article Quiz Generator
+                  </div>
+                </Link>
               </div>
               <div className="mt-2 text-[#71717A]">
                 Paste your article below to generate a summarize and quiz
@@ -187,7 +193,7 @@ const Home = () => {
                         {data.options.map((dat, index2) => (
                           <Button
                             key={index2}
-                            onClick={() => setStep(1)}
+                            onClick={() => (setStep(1), HandleOnAnswer(index2))}
                             className="w-fit bg-white text-black border-2 h-10 hover:text-white"
                           >
                             {dat}
