@@ -18,7 +18,7 @@ type HistoryDataType = {
 
 type ObjHistoryDatatype = {
   question: string;
-  answer: string; // "0", "1", "2", "3" гэх мэт
+  answer: string;
   options: string[];
   articletitle: string;
   articlesummary: string;
@@ -62,14 +62,11 @@ export default function SearchBar() {
     GetHistory(ID);
   }, [ID]);
 
-  // 🔹 Хариулт шалгах функц
   const HandleOnAnswer = (optionIndex: number) => {
     if (!result) return;
     const current = result.data[step];
-
-    const correctIndex = parseInt(current.answer); // "2" → 2 болгож хувиргах
+    const correctIndex = parseInt(current.answer);
     const isCorrect = optionIndex === correctIndex;
-
     const selected = current.options[optionIndex];
     const correct = current.options[correctIndex];
 
@@ -97,7 +94,6 @@ export default function SearchBar() {
 
   return (
     <div className="mt-50">
-      {/* 📰  Page 1: Article info */}
       {page === "page" && result && (
         <div className="w-[628px] h-fit ml-34 border-2 bg-white">
           <div className="mx-7 mb-7">
@@ -156,7 +152,6 @@ export default function SearchBar() {
         </div>
       )}
 
-      {/* 🧩 Page 2: Quiz */}
       {page === "test" && result && (
         <div className="w-[680px] h-fit ml-64">
           <div className="mx-7">
@@ -208,7 +203,6 @@ export default function SearchBar() {
         </div>
       )}
 
-      {/* 🏁 Page 3: Result */}
       {page === "last" && result && (
         <div className="w-[600px] h-fit ml-64">
           <div className="mx-7">
@@ -244,7 +238,7 @@ export default function SearchBar() {
                 {userAnswers.map((ans, index) => (
                   <div key={index} className="flex gap-3 mb-4">
                     <img
-                      src={ans.isCorrect ? "/correct.svg" : "/wrong.svg"}
+                      src={ans.isCorrect ? "/rigth.svg" : "/wrong.svg"}
                       className="w-6 h-6 mt-1"
                     />
                     <div>
@@ -279,7 +273,7 @@ export default function SearchBar() {
                   <img src="/reload.svg" /> Restart quiz
                 </Button>
                 <Button className="w-44 h-10">
-                  <img src="/rigth.svg" />
+                  <img src="/favorite.svg" />
                   Save and leave
                 </Button>
               </div>

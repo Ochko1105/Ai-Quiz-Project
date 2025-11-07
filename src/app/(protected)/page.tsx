@@ -1,384 +1,201 @@
 "use client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
-import React, { useState } from "react";
 
-const Home = () => {
-  type Quistions = {
-    question: string;
-    options: string[];
-    answer: string;
-  };
-  const [page, setPage] = useState<string>("page");
-  const [articlecontent, setArticlecontent] = useState<string>("");
-  const [articleTitle, setArticleTitle] = useState<string>("");
-  const [articleSummary, setArticleSummary] = useState<string>("");
-  const [takeID, setTakeID] = useState<string>("");
+type Question = {
+  question: string;
+  options: string[];
+  answer: string;
+};
+
+export default function Home() {
+  const [page, setPage] = useState<"page" | "summary" | "test" | "last">(
+    "page"
+  );
+  const [articlecontent, setArticlecontent] = useState("");
+  const [articleTitle, setArticleTitle] = useState("");
+  const [articleSummary, setArticleSummary] = useState("");
+  const [takeID, setTakeID] = useState("");
+  const [generatedtext, setGeneratedtext] = useState<Question[]>([]);
   const [step, setStep] = useState(0);
-  const [generatedtext, setGeneratedtext] = useState<Quistions[]>([]);
+  const [score, setScore] = useState(0);
+
   const HandleOnContent = async () => {
     const response = await fetch("/api/generate/summary", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ articlecontent, articleTitle }),
     });
+
     const rawData = await response.json();
-    console.log({ rawData });
-    if (rawData.data.length > 1) {
+    const cleanedText = extractJsonArray(rawData.data || rawData);
+    try {
+      const parsedArray = JSON.parse(cleanedText);
+      setArticleSummary(parsedArray);
+      if (parsedArray.length > 0) setPage("test");
+    } catch (e) {
+      console.error("JSON parse error:", e);
+    }
+    if (rawData.data) {
+      setTakeID(rawData.id.rows[0].id);
       setPage("summary");
     }
-    setArticleSummary(rawData.data);
-    setTakeID(rawData.id.rows[0].id);
   };
+
   const HandleOnPost = async () => {
     const response = await fetch("/api/generate", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ articleSummary, takeID }),
     });
 
     const rawData = await response.json();
-    console.log({ rawData });
-
     const cleanedText = extractJsonArray(rawData.data || rawData);
+
     try {
       const parsedArray = JSON.parse(cleanedText);
-
       setGeneratedtext(parsedArray);
-      if (parsedArray.length > 0) {
-        setPage("test");
-      }
+      if (parsedArray.length > 0) setPage("test");
     } catch (e) {
       console.error("JSON parse error:", e);
     }
   };
-  // Regex функц нь гаднаас тусдаа байрлаж болно
+
   const extractJsonArray = (text: string) => {
     const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (match) {
-      return match[1].trim();
-    }
-    return text.trim();
+    return match ? match[1].trim() : text.trim();
   };
-  const HandleOnAnswer = (index: any) => {
-    console.log({ index });
+
+  const HandleOnAnswer = (selectedIndex: number) => {
+    const current = generatedtext[step];
+    const correctIndex = parseInt(current.answer);
+    const isCorrect = selectedIndex === correctIndex;
+
+    if (isCorrect) setScore((prev) => prev + 1);
+
+    if (step + 1 >= generatedtext.length) {
+      setPage("last");
+    } else {
+      setStep((prev) => prev + 1);
+    }
   };
 
   return (
-    <div className="bg-accent w-screen h-screen ">
+    <div className="bg-accent w-screen h-screen p-10 ">
       {page === "page" && (
-        <div className="mt-10">
-          <div className="h-72"></div>
-          <div className="w-[856px] h-fit ml-54  border-2 bg-white">
-            <div className="mx-7 mb-7">
-              <div className="flex gap-2">
-                <img src="/Vector.svg" />
-                <Link href="/turshih?search=my-project">
-                  <div className="font-bold text-[32px]">
-                    Article Quiz Generator
-                  </div>
-                </Link>
-              </div>
-              <div className="mt-2 text-[#71717A]">
-                Paste your article below to generate a summarize and quiz
-                question. Your articles will saved in the sidebar for future
-                reference.
-              </div>
-              <div className="mt-5 text-[#71717A] flex gap-2">
-                <img src="/Shape.svg" />
-                Article title
-              </div>
-              <Input
-                placeholder="Enter a title for your article.."
-                type="text"
-                value={articleTitle}
-                onChange={(e) => setArticleTitle(e.target.value)}
-              />
-              <div className="mt-5 text-[#71717A] flex gap-2">
-                <img src="/Shape.svg" />
-                Article Content
-              </div>
-              <Textarea
-                placeholder="Paste your article content here..."
-                value={articlecontent}
-                onChange={(e) => setArticlecontent(e.target.value)}
-              />
-              <div className="flex justify-end">
-                <Button onClick={() => HandleOnContent()} className="mt-5 ">
-                  Generate summary
-                </Button>
-              </div>
-            </div>
+        <div className="w-[856px] ml-50 bg-white border-2 rounded-md p-6 mt-50">
+          <div className="flex gap-2 mb-2">
+            <img src="/Vector.svg" />
+            <Link href="/turshih?search=my-project">
+              <h1 className="font-bold text-3xl">Article Quiz Generator</h1>
+            </Link>
+          </div>
+          <p className="text-gray-600 mb-4">
+            Paste your article below to generate a summary and quiz questions.
+          </p>
+
+          <label className="text-gray-700 flex gap-2 mb-2">
+            <img src="/Shape.svg" />
+            Article title
+          </label>
+          <Input
+            placeholder="Enter a title..."
+            value={articleTitle}
+            onChange={(e) => setArticleTitle(e.target.value)}
+          />
+
+          <label className="text-gray-700 flex gap-2 mt-5 mb-2">
+            <img src="/Shape.svg" />
+            Article content
+          </label>
+          <Textarea
+            placeholder="Paste your article content here..."
+            value={articlecontent}
+            onChange={(e) => setArticlecontent(e.target.value)}
+          />
+
+          <div className="flex justify-end">
+            <Button onClick={HandleOnContent} className="mt-5">
+              Generate summary
+            </Button>
           </div>
         </div>
       )}
+
       {page === "summary" && (
-        <div className="mt-10">
-          <div className="h-72"></div>
-          <div className="w-[856px] h-fit ml-114  border-2 bg-white">
-            <div className="mx-7 mb-7">
-              <div className="flex gap-2">
-                <img src="/Vector.svg" />
-                <div className="font-bold text-[32px]">
-                  Article Quiz Generator
-                </div>
-              </div>
+        <div className="w-[856px] mx-auto bg-white border-2 rounded-md p-6">
+          <div className="flex gap-2 mb-2">
+            <img src="/Vector.svg" />
+            <h1 className="font-bold text-3xl">Article Quiz Generator</h1>
+          </div>
 
-              <div className="mt-5 text-[#71717A] flex gap-2">
-                <img src="/Shape.svg" />
-                Summarized Content
-              </div>
-              <div className="font-bold mt-4">{articleTitle}</div>
-              <div className="mt-4">{articleSummary}</div>
-              <div className="flex justify-between mt-5">
-                <Button className="bg-white text-black border-2">
-                  See content
-                </Button>
-                <Button onClick={() => HandleOnPost()} className=" ">
-                  Take a quiz
-                </Button>
-              </div>
-            </div>
+          <p className="text-gray-700 flex gap-2 mb-2 mt-5">
+            <img src="/Shape.svg" />
+            Summarized Content
+          </p>
+          <h2 className="font-bold mt-4">{articleTitle}</h2>
+          <p className="mt-4">{articleSummary}</p>
+
+          <div className="flex justify-between mt-5">
+            <Button variant="outline" onClick={() => setPage("page")}>
+              Back
+            </Button>
+            <Button onClick={HandleOnPost}>Take a quiz</Button>
           </div>
         </div>
       )}
-      {page === "test" && (
-        <div className="w-[680px] h-fit ml-64">
-          <div className="h-30"></div>
-          <div className="mx-7 ">
-            <div className="flex justify-between w-[680px]">
-              <div className="flex gap-2">
-                <img src="/Vector.svg" />
-                <div className="font-bold text-[32px]">Quick test</div>
-              </div>
 
-              <div>
+      {page === "test" && generatedtext[step] && (
+        <div className="w-[700px] mx-auto bg-white border-2 rounded-md p-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold">Quick Test</h1>
+            <Button variant="outline" onClick={() => setPage("page")}>
+              X
+            </Button>
+          </div>
+
+          <p className="text-gray-600 mt-2">
+            Question {step + 1} / {generatedtext.length}
+          </p>
+
+          <div className="mt-6">
+            <h2 className="text-2xl font-semibold mb-6">
+              {generatedtext[step].question}
+            </h2>
+
+            <div className="flex flex-col gap-3">
+              {generatedtext[step].options.map((opt, idx) => (
                 <Button
-                  className="bg-white text-black border-2"
-                  onClick={() => setPage("page")}
+                  key={idx}
+                  variant="outline"
+                  onClick={() => HandleOnAnswer(idx)}
                 >
-                  X
+                  {opt}
                 </Button>
-              </div>
+              ))}
             </div>
-            <div className="mt-2 text-[#71717A]">
-              Take a quick test about your knowledge from your content
-            </div>
-            {step === 0 && (
-              <div>
-                {generatedtext.slice(0, 1).map((data, index) => (
-                  <div
-                    key={index}
-                    className="mt-6 border-2 bg-white rounded-md w-fit"
-                  >
-                    <div className="mx-7">
-                      <div className="flex justify-between  ">
-                        <div className="mt-7 text-[28px] font-semibold  w-[500px]">
-                          {data.question}
-                        </div>
-                        <div className="text-[28px] mt-7">
-                          {step + 1}
-                          <span className="text-[#737373] text-[20px]">
-                            / {generatedtext.length}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap w-fit gap-4 h-fit mt-10 mb-10">
-                        {data.options.map((dat, index2) => (
-                          <Button
-                            key={index2}
-                            onClick={() => (setStep(1), HandleOnAnswer(index2))}
-                            className="w-fit bg-white text-black border-2 h-10 hover:text-white"
-                          >
-                            {dat}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    {data.answer}
-                  </div>
-                ))}
-              </div>
-            )}
-            {step === 1 && (
-              <div>
-                {generatedtext.slice(1, 2).map((data, index) => (
-                  <div
-                    key={index}
-                    className="mt-6 border-2 bg-white rounded-md w-fit"
-                  >
-                    <div className="mx-7">
-                      <div className="flex justify-between  ">
-                        <div className="mt-7 text-[28px] font-semibold  w-[500px]">
-                          {data.question}
-                        </div>
-                        <div className="text-[28px] mt-7">
-                          {step + 1}
-                          <span className="text-[#737373] text-[20px]">
-                            / {generatedtext.length}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap w-fit gap-4 h-fit mt-10 mb-10">
-                        {data.options.map((dat) => (
-                          <Button
-                            onClick={() => setStep(2)}
-                            className="w-fit bg-white text-black border-2 h-10 hover:text-white"
-                          >
-                            {dat}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    {data.answer}
-                  </div>
-                ))}
-              </div>
-            )}
-            {step === 2 && (
-              <div>
-                {generatedtext.slice(2, 3).map((data, index) => (
-                  <div
-                    key={index}
-                    className="mt-6 border-2 bg-white rounded-md w-fit"
-                  >
-                    <div className="mx-7">
-                      <div className="flex justify-between  ">
-                        <div className="mt-7 text-[28px] font-semibold  w-[500px]">
-                          {data.question}
-                        </div>
-                        <div className="text-[28px] mt-7">
-                          {step + 1}
-                          <span className="text-[#737373] text-[20px]">
-                            / {generatedtext.length}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap w-fit gap-4 h-fit mt-10 mb-10">
-                        {data.options.map((dat) => (
-                          <Button
-                            onClick={() => setStep(3)}
-                            className="w-fit bg-white text-black border-2 h-10 hover:text-white"
-                          >
-                            {dat}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    {data.answer}
-                  </div>
-                ))}
-              </div>
-            )}
-            {step === 3 && (
-              <div>
-                {generatedtext.slice(3, 4).map((data, index) => (
-                  <div
-                    key={index}
-                    className="mt-6 border-2 bg-white rounded-md w-fit"
-                  >
-                    <div className="mx-7">
-                      <div className="flex justify-between  ">
-                        <div className="mt-7 text-[28px] font-semibold  w-[500px]">
-                          {data.question}
-                        </div>
-                        <div className="text-[28px] mt-7">
-                          {step + 1}
-                          <span className="text-[#737373] text-[20px]">
-                            / {generatedtext.length}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap w-fit gap-4 h-fit mt-10 mb-10">
-                        {data.options.map((dat) => (
-                          <Button
-                            onClick={() => setStep(4)}
-                            className="w-fit bg-white text-black border-2 h-10 hover:text-white"
-                          >
-                            {dat}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    {data.answer}
-                  </div>
-                ))}
-              </div>
-            )}
-            {step === 4 && (
-              <div>
-                {generatedtext.slice(4, 5).map((data, index) => (
-                  <div
-                    key={index}
-                    className="mt-6 border-2 bg-white rounded-md w-fit"
-                  >
-                    <div className="mx-7">
-                      <div className="flex justify-between  ">
-                        <div className="mt-7 text-[28px] font-semibold  w-[500px]">
-                          {data.question}
-                        </div>
-                        <div className="text-[28px] mt-7">
-                          {step + 1}
-                          <span className="text-[#737373] text-[20px]">
-                            / {generatedtext.length}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap w-fit gap-4 h-fit mt-10 mb-10">
-                        {data.options.map((dat) => (
-                          <Button
-                            onClick={() => setPage("last")}
-                            className="w-fit bg-white text-black border-2 h-10 hover:text-white"
-                          >
-                            {dat}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    {data.answer}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       )}
+
       {page === "last" && (
-        <div className="w-[680px] h-fit ml-64">
-          <div className="h-30"></div>
-          <div className="mx-7 ">
-            <div className="flex justify-between w-[680px]">
-              <div className="flex gap-2">
-                <img src="/Vector.svg" />
-                <div className="font-bold text-[32px]">Quick completed</div>
-              </div>
-
-              <div>
-                <Button
-                  className="bg-white text-black border-2"
-                  onClick={() => (setPage("page"), setStep(0))}
-                >
-                  X
-                </Button>
-              </div>
-            </div>
-            <div className="mt-2 text-[#71717A]">Lets see what you did</div>
-            <div>
-              <div className="font-semibold">
-                Your score:2 <span>/5</span>
-              </div>
-            </div>
-          </div>
+        <div className="w-[700px] mx-auto bg-white border-2 rounded-md p-6 text-center">
+          <h1 className="text-3xl font-bold mb-4">Quiz Completed 🎉</h1>
+          <p className="text-lg">
+            Your score: <span className="font-semibold">{score}</span> /
+            {generatedtext.length}
+          </p>
+          <Button
+            className="mt-6"
+            onClick={() => (setPage("page"), setStep(0), setScore(0))}
+          >
+            Try Again
+          </Button>
         </div>
       )}
     </div>
   );
-};
-
-export default Home;
+}
