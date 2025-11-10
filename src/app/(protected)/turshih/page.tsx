@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { FaAngleLeft } from "react-icons/fa6";
+import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import {
   Dialog,
   DialogTrigger,
@@ -11,6 +13,18 @@ import {
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LuBookOpen } from "react-icons/lu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
 type HistoryDataType = {
   data: ObjHistoryDatatype[];
@@ -95,58 +109,66 @@ export default function SearchBar() {
   return (
     <div className="mt-50">
       {page === "page" && result && (
-        <div className="w-[628px] h-fit ml-34 border-2 bg-white">
-          <div className="mx-7 mb-7">
-            <div className="flex gap-2 mt-5">
-              <img src="/Vector.svg" />
-              <div className="font-bold text-[32px]">
-                Article Quiz Generator
+        <div>
+          <Link href="/">
+            <div className="w-12 h-10 border-2 flex items-center justify-center ml-34 mb-5 ">
+              <MdOutlineKeyboardArrowLeft />
+            </div>
+          </Link>
+
+          <div className="w-[628px] h-fit ml-34 border-2 bg-white">
+            <div className="mx-7 mb-7">
+              <div className="flex gap-2 mt-5">
+                <img src="/Vector.svg" />
+                <div className="font-bold text-[32px]">
+                  Article Quiz Generator
+                </div>
               </div>
-            </div>
 
-            <div className="mt-5 text-[#71717A] flex gap-2 items-center">
-              <LuBookOpen /> Summarized content
-            </div>
-            <div className="text-[24px] font-bold">
-              {result.data[0].articletitle}
-            </div>
-            <div>{result.data[0].articlesummary}</div>
+              <div className="mt-5 text-[#71717A] flex gap-2 items-center">
+                <LuBookOpen /> Summarized content
+              </div>
+              <div className="text-[24px] font-bold">
+                {result.data[0].articletitle}
+              </div>
+              <div>{result.data[0].articlesummary}</div>
 
-            <div className="mt-5 text-[#71717A] flex gap-2">
-              <img src="/Shape.svg" />
-              Article Content
-            </div>
-            <div className="h-[60px] flex flex-wrap w-[572px] text-ellipsis">
-              <div className="truncate">{result.data[0].articlecontent}</div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="ml-115 mt-3 bg-white text-black">
-                    See more
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="text-[24px] font-bold">
-                      {result.data[0].articletitle}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="mt-5">{result.data[0].articlecontent}</div>
-                </DialogContent>
-              </Dialog>
-            </div>
+              <div className="mt-5 text-[#71717A] flex gap-2">
+                <img src="/Shape.svg" />
+                Article Content
+              </div>
+              <div className="h-[60px] flex flex-wrap w-[572px] text-ellipsis">
+                <div className="truncate">{result.data[0].articlecontent}</div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="ml-115 mt-3 bg-white text-black">
+                      See more
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="text-[24px] font-bold">
+                        {result.data[0].articletitle}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-2">{result.data[0].articlecontent}</div>
+                  </DialogContent>
+                </Dialog>
+              </div>
 
-            <div className="flex justify-start">
-              <Button
-                className="mt-5"
-                onClick={() => {
-                  setPage("test");
-                  setStep(0);
-                  setCorrectAnswers(0);
-                  setUserAnswers([]);
-                }}
-              >
-                Take quiz
-              </Button>
+              <div className="flex justify-start">
+                <Button
+                  className="mt-5"
+                  onClick={() => {
+                    setPage("test");
+                    setStep(0);
+                    setCorrectAnswers(0);
+                    setUserAnswers([]);
+                  }}
+                >
+                  Take quiz
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -160,12 +182,40 @@ export default function SearchBar() {
                 <img src="/Vector.svg" />
                 <div className="font-bold text-[32px]">Quick test</div>
               </div>
-              <Button
-                className="bg-white text-black border-2"
-                onClick={() => setPage("page")}
-              >
-                X
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="bg-white text-black border-2">X</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="w-[450px]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-[32px]">
+                      Are you sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-[#B91C1C] text-[18  px]">
+                      If you press 'Cancel', this quiz will restart from the
+                      beginning.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <div className="w-[450px] flex gap-11 mt-6">
+                      <AlertDialogCancel className="bg-black text-white w-[180px]">
+                        Go back
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-white text-black border-2 w-[180px]"
+                        onClick={() => {
+                          setPage("page");
+                          setStep(0);
+                          setCorrectAnswers(0);
+                          setUserAnswers([]);
+                        }}
+                      >
+                        Cancel quiz
+                      </AlertDialogAction>
+                    </div>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
 
             <div className="mt-2 text-[#71717A]">
@@ -233,7 +283,6 @@ export default function SearchBar() {
                 </span>
               </div>
 
-              {/* 🔹 Тайлан хэсэг */}
               <div className="mt-5">
                 {userAnswers.map((ans, index) => (
                   <div key={index} className="flex gap-3 mb-4">

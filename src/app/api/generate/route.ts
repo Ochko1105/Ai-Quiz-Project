@@ -13,6 +13,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const { articleSummary, takeID } = await req.json();
+    console.log({ articleSummary });
     console.log({ takeID });
 
     // 1. Шалгах: articleSummary байхгүй бол бидэнд ажиллах юм алга
@@ -40,8 +41,14 @@ export async function POST(req: NextRequest) {
     });
 
     const generatedText = (aiResponse as any).text ?? aiResponse; // Generated content (JSON string)
+    console.log({ generatedText });
+    const extractJsonArray = (text: string) => {
+      const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      return match ? match[1].trim() : text.trim();
+    };
+    const cleanedText = extractJsonArray(generatedText.text || generatedText);
 
-    const quizList = JSON.parse(generatedText); // JSON болгон хөрвүүлж байна
+    const quizList = JSON.parse(cleanedText); // JSON болгон хөрвүүлж байна
 
     // 3. Article summary-г article хүснэгтэд хадгалах
     await query(
@@ -72,6 +79,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       message: "Асуулт ба тойм амжилттай хадгалагдлаа",
+      data: generatedText,
     });
   } catch (err: any) {
     console.error("POST /api/generate error:", err);

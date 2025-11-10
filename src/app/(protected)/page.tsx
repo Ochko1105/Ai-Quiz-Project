@@ -3,12 +3,19 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import Link from "next/link";
 
 type Question = {
   question: string;
   options: string[];
   answer: string;
+};
+type UserAnswer = {
+  question: string;
+  selected: string;
+  correct: string;
+  isCorrect: boolean;
 };
 
 export default function Home() {
@@ -21,7 +28,9 @@ export default function Home() {
   const [takeID, setTakeID] = useState("");
   const [generatedtext, setGeneratedtext] = useState<Question[]>([]);
   const [step, setStep] = useState(0);
-  const [score, setScore] = useState(0);
+  // const [score, setScore] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
 
   const HandleOnContent = async () => {
     const response = await fetch("/api/generate/summary", {
@@ -32,10 +41,15 @@ export default function Home() {
 
     const rawData = await response.json();
     const cleanedText = extractJsonArray(rawData.data || rawData);
+    setArticleSummary(cleanedText);
+    console.log({ cleanedText });
     try {
-      const parsedArray = JSON.parse(cleanedText);
-      setArticleSummary(parsedArray);
-      if (parsedArray.length > 0) setPage("test");
+      // const parsedArray = JSON.parse(cleanedText);
+      // console.log({ parsedArray });
+
+      if (cleanedText.length > 0) {
+        setPage("test");
+      }
     } catch (e) {
       console.error("JSON parse error:", e);
     }
@@ -54,6 +68,7 @@ export default function Home() {
 
     const rawData = await response.json();
     const cleanedText = extractJsonArray(rawData.data || rawData);
+    console.log("2", cleanedText);
 
     try {
       const parsedArray = JSON.parse(cleanedText);
@@ -73,8 +88,19 @@ export default function Home() {
     const current = generatedtext[step];
     const correctIndex = parseInt(current.answer);
     const isCorrect = selectedIndex === correctIndex;
+    const selected = current.options[selectedIndex];
+    const correct = current.options[correctIndex];
 
-    if (isCorrect) setScore((prev) => prev + 1);
+    if (isCorrect) setCorrectAnswers((prev) => prev + 1);
+    setUserAnswers((prev) => [
+      ...prev,
+      {
+        question: current.question,
+        selected,
+        correct,
+        isCorrect,
+      },
+    ]);
 
     if (step + 1 >= generatedtext.length) {
       setPage("last");
@@ -126,30 +152,39 @@ export default function Home() {
       )}
 
       {page === "summary" && (
-        <div className="w-[856px] mx-auto bg-white border-2 rounded-md p-6">
-          <div className="flex gap-2 mb-2">
-            <img src="/Vector.svg" />
-            <h1 className="font-bold text-3xl">Article Quiz Generator</h1>
+        <div>
+          <div
+            className="w-12 h-10 border-2 flex items-center justify-center ml-34 mb-5 "
+            onClick={() => setPage("page")}
+          >
+            <MdOutlineKeyboardArrowLeft />
           </div>
 
-          <p className="text-gray-700 flex gap-2 mb-2 mt-5">
-            <img src="/Shape.svg" />
-            Summarized Content
-          </p>
-          <h2 className="font-bold mt-4">{articleTitle}</h2>
-          <p className="mt-4">{articleSummary}</p>
+          <div className="w-[856px] mt-50 mx-auto bg-white border-2 rounded-md p-6">
+            <div className="flex gap-2 mb-2">
+              <img src="/Vector.svg" />
+              <h1 className="font-bold text-3xl">Article Quiz Generator</h1>
+            </div>
 
-          <div className="flex justify-between mt-5">
-            <Button variant="outline" onClick={() => setPage("page")}>
-              Back
-            </Button>
-            <Button onClick={HandleOnPost}>Take a quiz</Button>
+            <p className="text-gray-700 flex gap-2 mb-2 mt-5">
+              <img src="/Shape.svg" />
+              Summarized Content
+            </p>
+            <h2 className="font-bold mt-4">{articleTitle}</h2>
+            <p className="mt-4">{articleSummary}</p>
+
+            <div className="flex justify-between mt-5">
+              <Button variant="outline" onClick={() => setPage("page")}>
+                Back
+              </Button>
+              <Button onClick={HandleOnPost}>Take a quiz</Button>
+            </div>
           </div>
         </div>
       )}
 
       {page === "test" && generatedtext[step] && (
-        <div className="w-[700px] mx-auto bg-white border-2 rounded-md p-6">
+        <div className="w-[700px] mt-50 mx-auto bg-white border-2 rounded-md p-6">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold">Quick Test</h1>
             <Button variant="outline" onClick={() => setPage("page")}>
@@ -166,7 +201,7 @@ export default function Home() {
               {generatedtext[step].question}
             </h2>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 ">
               {generatedtext[step].options.map((opt, idx) => (
                 <Button
                   key={idx}
@@ -181,19 +216,81 @@ export default function Home() {
         </div>
       )}
 
-      {page === "last" && (
-        <div className="w-[700px] mx-auto bg-white border-2 rounded-md p-6 text-center">
-          <h1 className="text-3xl font-bold mb-4">Quiz Completed 🎉</h1>
-          <p className="text-lg">
-            Your score: <span className="font-semibold">{score}</span> /
-            {generatedtext.length}
-          </p>
-          <Button
-            className="mt-6"
-            onClick={() => (setPage("page"), setStep(0), setScore(0))}
-          >
-            Try Again
-          </Button>
+      {page === "last" && generatedtext && (
+        <div className="w-[600px] h-fit ml-64 mt-50">
+          <div className="mx-7">
+            <div className="flex justify-between w-[600px]">
+              <div className="flex gap-2">
+                <img src="/Vector.svg" />
+                <div className="font-bold text-[32px]">Quiz completed</div>
+              </div>
+            </div>
+
+            <div className="mt-2 text-[#71717A]">Let's see what you did</div>
+            <div className="mt-6 border-2 bg-white rounded-md w-[600px] p-6">
+              <div className="font-bold text-[32px]">
+                Your score: {correctAnswers}
+                <span className="text-[#71717A] text-[20px]">
+                  / {generatedtext.length}
+                </span>
+              </div>
+
+              <div className="mt-5">
+                {userAnswers.map((ans, index) => (
+                  <div key={index} className="flex gap-3 mb-4">
+                    <img
+                      src={ans.isCorrect ? "/rigth.svg" : "/wrong.svg"}
+                      className="w-6 h-6 mt-1"
+                    />
+                    <div>
+                      <div className="text-[#737373] font-medium">
+                        {index + 1}. {ans.question}
+                      </div>
+                      <div className="text-[#171717]">
+                        Your answer: {ans.selected}
+                      </div>
+                      <div
+                        className={
+                          ans.isCorrect ? "text-[#22C55E]" : "text-[#EF4444]"
+                        }
+                      >
+                        Correct: {ans.correct}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between my-7">
+                <Button
+                  className="w-44 h-10 bg-white text-black border-2 text-[20px]"
+                  onClick={() => {
+                    setStep(0);
+                    setCorrectAnswers(0);
+                    setUserAnswers([]);
+                    setPage("test");
+                  }}
+                >
+                  <img src="/reload.svg" /> Restart quiz
+                </Button>
+                <Button
+                  className="w-44 h-10"
+                  onClick={() => {
+                    setPage("page");
+                    setStep(0);
+                    setCorrectAnswers(0);
+                    setUserAnswers([]);
+                    setArticleTitle("");
+                    setArticlecontent("");
+                    setArticleSummary("");
+                  }}
+                >
+                  <img src="/favorite.svg" />
+                  Save and leave
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
