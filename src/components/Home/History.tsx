@@ -21,7 +21,6 @@ type ObjHistoryDatatype = {
 
 const History = async ({ ID }: { ID: string }) => {
   const result: HistoryDataType = await GetHistory(ID);
-  console.log({ result });
   return (
     <div>
       <div className="w-[628px] h-fit ml-34  border-2 bg-white">

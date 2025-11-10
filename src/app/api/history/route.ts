@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       SELECT 
         a.id, 
         a.articletitle, 
-         a.articlecontent, 
+        a.articlecontent, 
         a.articlesummary, 
         q.question, 
         q.options, 
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       LEFT JOIN quiz q ON a.id = q.article_id
       WHERE a.id = $1
       `,
-      [ID] // Always use parameterized query to prevent SQL injection
+      [ID]
     );
 
     console.log({ historyArticles });

@@ -4,7 +4,6 @@ const { Pool } = pkg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // ... бусад тохиргоо
 });
 
 export async function query(text: string, params: any[] = []) {

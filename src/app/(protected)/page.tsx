@@ -23,6 +23,7 @@ export default function Home() {
     "page"
   );
   const [articlecontent, setArticlecontent] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
   const [articleTitle, setArticleTitle] = useState("");
   const [articleSummary, setArticleSummary] = useState("");
   const [takeID, setTakeID] = useState("");
@@ -42,7 +43,7 @@ export default function Home() {
     const rawData = await response.json();
     const cleanedText = extractJsonArray(rawData.data || rawData);
     setArticleSummary(cleanedText);
-    console.log({ cleanedText });
+
     try {
       // const parsedArray = JSON.parse(cleanedText);
       // console.log({ parsedArray });
@@ -144,7 +145,11 @@ export default function Home() {
           />
 
           <div className="flex justify-end">
-            <Button onClick={HandleOnContent} className="mt-5">
+            <Button
+              onClick={HandleOnContent}
+              className="mt-5"
+              disabled={!articlecontent}
+            >
               Generate summary
             </Button>
           </div>

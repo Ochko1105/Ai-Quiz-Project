@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model articles {
+  id             Int     @id @default(autoincrement())
+  articletitle   String? @db.VarChar(1000)
+  articlecontent String?
+  quiz           Json[]  @db.Json
+  articlesummary String?
+}
+
+model quiz {
+  id         Int       @id @default(autoincrement())
+  question   String?
+  options    Json?
+  answer     String?   @db.VarChar(50)
+  article_id Int?
+  createdat  DateTime? @default(now()) @db.Timestamptz(6)
+  updatedat  DateTime? @default(now()) @db.Timestamptz(6)
+}

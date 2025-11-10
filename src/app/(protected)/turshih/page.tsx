@@ -69,7 +69,6 @@ export default function SearchBar() {
 
     const responseData = await response.json();
     setResult(responseData);
-    console.log({ responseData });
   };
 
   useEffect(() => {

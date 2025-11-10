@@ -10,7 +10,6 @@ type HistoryPageProps = {
 const HistoryPage = async ({ searchParams }: HistoryPageProps) => {
   const params = await searchParams;
   const ID = params.id;
-  console.log({ ID });
 
   return (
     <div>
