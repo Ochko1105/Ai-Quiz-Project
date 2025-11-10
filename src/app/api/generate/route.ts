@@ -1,22 +1,26 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/connectDB";
+import { prisma } from "@/lib/prisma";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 export async function GET() {
-  const history = await query("SELECT articletitle , id FROM articles");
-  return Response.json({ data: history });
+  const PrismaHistory = await prisma.articles.findMany();
+  // const deletetitle = await prisma.articles.delete({
+  //   where: {
+  //     id: 35,
+  //   },
+  // });
+
+  return Response.json({ data: PrismaHistory });
 }
 
 export async function POST(req: NextRequest) {
   try {
     const { articleSummary, takeID } = await req.json();
-    console.log({ articleSummary });
-    console.log({ takeID });
 
-    // 1. Шалгах: articleSummary байхгүй бол бидэнд ажиллах юм алга
     if (!articleSummary || !takeID) {
       return NextResponse.json(
         { error: "articleSummary болон takeID заавал хэрэгтэй" },
@@ -24,7 +28,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Асуулт үүсгэх AI Prompt
     const prompt = `Generate 5 multiple choice questions based on this article: ${articleSummary}. Return the response in this exact JSON format:
       [
         {
@@ -41,16 +44,15 @@ export async function POST(req: NextRequest) {
     });
 
     const generatedText = (aiResponse as any).text ?? aiResponse; // Generated content (JSON string)
-    console.log({ generatedText });
+
     const extractJsonArray = (text: string) => {
       const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       return match ? match[1].trim() : text.trim();
     };
     const cleanedText = extractJsonArray(generatedText.text || generatedText);
 
-    const quizList = JSON.parse(cleanedText); // JSON болгон хөрвүүлж байна
+    const quizList = JSON.parse(cleanedText);
 
-    // 3. Article summary-г article хүснэгтэд хадгалах
     await query(
       `INSERT INTO articles (articlesummary, id) 
          VALUES ($1, $2) 
@@ -68,8 +70,8 @@ export async function POST(req: NextRequest) {
         `,
         [
           quiz.question,
-          JSON.stringify(quiz.options), // JSON болгож дамжуулж байна
-          parseInt(quiz.answer), // Хэрэв хариулт нь index бол 숫 болгох
+          JSON.stringify(quiz.options),
+          parseInt(quiz.answer),
           takeID,
         ]
       )

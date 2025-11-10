@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LuBookOpen } from "react-icons/lu";
 import {
@@ -54,8 +54,8 @@ export default function SearchBar() {
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
   const searchParams = useSearchParams();
   const ID = searchParams.get("search");
+  const router = useRouter();
 
-  // 🔹 API дуудлага
   const GetHistory = async (ID: string | null) => {
     if (!ID) return;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
@@ -68,6 +68,7 @@ export default function SearchBar() {
     });
 
     const responseData = await response.json();
+    console.log({ responseData });
     setResult(responseData);
   };
 
@@ -320,7 +321,7 @@ export default function SearchBar() {
                 >
                   <img src="/reload.svg" /> Restart quiz
                 </Button>
-                <Button className="w-44 h-10">
+                <Button onClick={() => router.push(`/`)} className="w-44 h-10">
                   <img src="/favorite.svg" />
                   Save and leave
                 </Button>

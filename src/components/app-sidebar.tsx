@@ -21,9 +21,10 @@ export function AppSidebar() {
     const result = await fetch("/api/generate");
 
     const responseData = await result.json();
-    console.log({ responseData });
+
     const { data } = responseData;
-    SetHistory(data.rows);
+
+    SetHistory(data);
   };
   useEffect(() => {
     getHistory();
@@ -33,6 +34,25 @@ export function AppSidebar() {
     const ID = data.id;
     // router.push(`/history?id=${ID}`);
     router.push(`/turshih?search=${ID}`);
+  };
+  const DeleteTitle = async (data: { id: string }) => {
+    if (confirm("Are u sure ?") === true) {
+      const ID = data.id;
+
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+      const response = await fetch(`${baseUrl}/api/history/DeleteHistory`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ID }),
+        cache: "no-store",
+      });
+      getHistory();
+      return response;
+    } else {
+      return;
+    }
   };
 
   return (
@@ -45,15 +65,24 @@ export function AppSidebar() {
       <SidebarHeader />
       <SidebarContent>
         <div className="mx-4">
-          {history.map((data, index) => (
-            <div
-              key={index}
-              onClick={() => HistoryOnclick(data)}
-              className="h-6 font-semibold my-2 "
-            >
-              {data.articletitle}
+          {history && (
+            <div>
+              {history.map((data, index) => (
+                <div key={index} className="h-6 font-semibold my-2 ">
+                  <div className="flex w-[223px] justify-between">
+                    <div onClick={() => HistoryOnclick(data)}>
+                      {data.articletitle}
+                    </div>
+                    <img
+                      onClick={() => DeleteTitle(data)}
+                      src="/delete.svg
+                  "
+                    ></img>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
         <SidebarGroup />
         <SidebarGroup />

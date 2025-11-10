@@ -25,3 +25,4 @@ model quiz {
   createdat  DateTime? @default(now()) @db.Timestamptz(6)
   updatedat  DateTime? @default(now()) @db.Timestamptz(6)
 }
+
