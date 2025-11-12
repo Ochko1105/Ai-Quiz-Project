@@ -13,16 +13,17 @@ import { useEffect, useState } from "react";
 export function AppSidebar() {
   const router = useRouter();
   type History = {
-    articletitle: string;
+    title: string;
     id: string;
   };
   const [history, SetHistory] = useState<History[]>([]);
   const getHistory = async () => {
-    const result = await fetch("/api/generate");
+    const result = await fetch("/api/generate/summary");
 
     const responseData = await result.json();
 
     const { data } = responseData;
+    console.log({ data });
 
     SetHistory(data);
   };
@@ -31,7 +32,9 @@ export function AppSidebar() {
   }, []);
   console.log({ history });
   const HistoryOnclick = async (data: { id: string }) => {
+    console.log("djsdfbd", data);
     const ID = data.id;
+    console.log("appsidebar", ID);
     // router.push(`/history?id=${ID}`);
     router.push(`/turshih?search=${ID}`);
   };
@@ -70,9 +73,7 @@ export function AppSidebar() {
               {history.map((data, index) => (
                 <div key={index} className="h-6 font-semibold my-2 ">
                   <div className="flex w-[223px] justify-between">
-                    <div onClick={() => HistoryOnclick(data)}>
-                      {data.articletitle}
-                    </div>
+                    <div onClick={() => HistoryOnclick(data)}>{data.title}</div>
                     <img
                       onClick={() => DeleteTitle(data)}
                       src="/delete.svg

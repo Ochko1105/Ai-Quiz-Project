@@ -1,7 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { FaAngleLeft } from "react-icons/fa6";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import {
   Dialog,
@@ -10,9 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LuBookOpen } from "react-icons/lu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,18 +22,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LuBookOpen } from "react-icons/lu";
 
 type HistoryDataType = {
-  data: ObjHistoryDatatype[];
-};
-
-type ObjHistoryDatatype = {
-  question: string;
-  answer: string;
-  options: string[];
-  articletitle: string;
-  articlesummary: string;
-  articlecontent: string;
+  data: {
+    Quiz: { question: string; answer: string; options: string[] }[];
+    title: string;
+    summary: string;
+    content: string;
+  };
 };
 
 type UserAnswer = {
@@ -52,284 +47,286 @@ export default function SearchBar() {
   const [step, setStep] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
-  const searchParams = useSearchParams();
-  const ID = searchParams.get("search");
-  const router = useRouter();
+  const [seconds, setSeconds] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const ID = searchParams.get("search");
+
+  // =================== Backend data татах ===================
   const GetHistory = async (ID: string | null) => {
     if (!ID) return;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
-    const response = await fetch(`${baseUrl}/api/history`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ID }),
-      cache: "no-store",
-    });
-
-    const responseData = await response.json();
-    console.log({ responseData });
-    setResult(responseData);
+    try {
+      const response = await fetch(`${baseUrl}/api/history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ID }),
+        cache: "no-store",
+      });
+      const responseData = await response.json();
+      setResult(responseData);
+    } catch (err) {
+      console.error("Error fetching history:", err);
+    }
   };
 
   useEffect(() => {
     GetHistory(ID);
   }, [ID]);
 
+  // =================== Timer ===================
+  useEffect(() => {
+    if (!timerRunning) return;
+    const interval = setInterval(() => setSeconds((prev) => prev + 1), 1000);
+    return () => clearInterval(interval);
+  }, [timerRunning]);
+
+  // =================== Quiz хариулт ===================
   const HandleOnAnswer = (optionIndex: number) => {
     if (!result) return;
-    const current = result.data[step];
+    const current = result.data.Quiz[step];
     const correctIndex = parseInt(current.answer);
     const isCorrect = optionIndex === correctIndex;
     const selected = current.options[optionIndex];
     const correct = current.options[correctIndex];
 
-    if (isCorrect) {
-      setCorrectAnswers((prev) => prev + 1);
-    }
+    if (isCorrect) setCorrectAnswers((prev) => prev + 1);
 
-    setUserAnswers((prev) => [
-      ...prev,
-      {
-        question: current.question,
-        selected,
-        correct,
-        isCorrect,
-      },
-    ]);
+    const updatedAnswers = [
+      ...userAnswers,
+      { question: current.question, selected, correct, isCorrect },
+    ];
+    setUserAnswers(updatedAnswers);
 
     const next = step + 1;
-    if (next >= result.data.length) {
+    if (next >= result.data.Quiz.length) {
       setPage("last");
-    } else {
-      setStep(next);
-    }
+      setTimerRunning(false); // timer зогсоох
+
+      // Backend руу хадгалах
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      fetch(`${baseUrl}/api/save-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ID,
+          userAnswers: updatedAnswers,
+          correctAnswers: isCorrect ? correctAnswers + 1 : correctAnswers,
+          timeSpent: seconds + 1,
+        }),
+      }).catch(console.error);
+    } else setStep(next);
   };
 
+  if (!result)
+    return <div className="text-center mt-20 text-gray-500">Loading...</div>;
+
+  // ======================== Render ========================
   return (
-    <div className="mt-50">
-      {page === "page" && result && (
-        <div>
-          <Link href="/">
-            <div className="w-12 h-10 border-2 flex items-center justify-center ml-34 mb-5 ">
-              <MdOutlineKeyboardArrowLeft />
+    <div className="mt-20 flex justify-center">
+      <div className="w-[600px] border-2 bg-white rounded-xl p-6">
+        {/* ======================== PAGE 1 ======================== */}
+        {page === "page" && (
+          <>
+            <Link href="/">
+              <div className="w-12 h-10 border-2 flex items-center justify-center mb-5 cursor-pointer">
+                <MdOutlineKeyboardArrowLeft />
+              </div>
+            </Link>
+
+            <h1 className="font-bold text-3xl flex items-center gap-2 mb-4">
+              Article Quiz Generator
+            </h1>
+
+            <div className="text-gray-500 mb-2 flex items-center gap-2">
+              <LuBookOpen /> Summary
             </div>
-          </Link>
+            <div className="text-lg font-semibold mb-2">
+              {result.data.title}
+            </div>
+            <div className="mb-4">{result.data.summary}</div>
 
-          <div className="w-[628px] h-fit ml-34 border-2 bg-white">
-            <div className="mx-7 mb-7">
-              <div className="flex gap-2 mt-5">
-                <img src="/Vector.svg" />
-                <div className="font-bold text-[32px]">
-                  Article Quiz Generator
-                </div>
-              </div>
+            <div className="text-gray-500 mb-2">Content:</div>
+            <div className="h-20 overflow-hidden text-ellipsis mb-4">
+              {result.data.content}
+            </div>
 
-              <div className="mt-5 text-[#71717A] flex gap-2 items-center">
-                <LuBookOpen /> Summarized content
-              </div>
-              <div className="text-[24px] font-bold">
-                {result.data[0].articletitle}
-              </div>
-              <div>{result.data[0].articlesummary}</div>
-
-              <div className="mt-5 text-[#71717A] flex gap-2">
-                <img src="/Shape.svg" />
-                Article Content
-              </div>
-              <div className="h-[60px] flex flex-wrap w-[572px] text-ellipsis">
-                <div className="truncate">{result.data[0].articlecontent}</div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="ml-115 mt-3 bg-white text-black">
-                      See more
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle className="text-[24px] font-bold">
-                        {result.data[0].articletitle}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-2">{result.data[0].articlecontent}</div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <div className="flex justify-start">
-                <Button
-                  className="mt-5"
-                  onClick={() => {
-                    setPage("test");
-                    setStep(0);
-                    setCorrectAnswers(0);
-                    setUserAnswers([]);
-                  }}
-                >
-                  Take quiz
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="w-full mb-4 bg-white text-black border-2">
+                  See More
                 </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {page === "test" && result && (
-        <div className="w-[680px] h-fit ml-64">
-          <div className="mx-7">
-            <div className="flex justify-between w-[680px]">
-              <div className="flex gap-2">
-                <img src="/Vector.svg" />
-                <div className="font-bold text-[32px]">Quick test</div>
-              </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button className="bg-white text-black border-2">X</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="w-[450px]">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-[32px]">
-                      Are you sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-[#B91C1C] text-[18  px]">
-                      If you press 'Cancel', this quiz will restart from the
-                      beginning.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <div className="w-[450px] flex gap-11 mt-6">
-                      <AlertDialogCancel className="bg-black text-white w-[180px]">
-                        Go back
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        className="bg-white text-black border-2 w-[180px]"
-                        onClick={() => {
-                          setPage("page");
-                          setStep(0);
-                          setCorrectAnswers(0);
-                          setUserAnswers([]);
-                        }}
-                      >
-                        Cancel quiz
-                      </AlertDialogAction>
-                    </div>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-
-            <div className="mt-2 text-[#71717A]">
-              Take a quick test about your knowledge from your content
-            </div>
-
-            <div className="mt-6 border-2 bg-white rounded-md w-fit">
-              <div className="mx-7">
-                <div className="flex justify-between">
-                  <div className="mt-7 text-[28px] font-semibold w-[500px]">
-                    {result.data[step].question}
-                  </div>
-                  <div className="text-[28px] mt-7">
-                    {step + 1}
-                    <span className="text-[#737373] text-[20px]">
-                      / {result.data.length}
-                    </span>
-                  </div>
+              </DialogTrigger>
+              <DialogContent className="max-w-[600px] p-6 border-2 rounded-xl bg-white">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold mb-2">
+                    {result.data.title}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="text-gray-700">{result.data.content}</div>
+                <div className="flex justify-end mt-4">
+                  <Button onClick={() => {}}>Close</Button>
                 </div>
+              </DialogContent>
+            </Dialog>
 
-                <div className="flex flex-wrap w-fit gap-4 h-fit mt-10 mb-10">
-                  {result.data[step].options.map((opt, idx) => (
-                    <Button
-                      key={idx}
-                      onClick={() => HandleOnAnswer(idx)}
-                      className="w-fit bg-white text-black border-2 h-10 hover:text-white"
-                    >
-                      {opt}
-                    </Button>
-                  ))}
-                </div>
+            <Button
+              className="mt-2 w-full"
+              onClick={() => {
+                setPage("test");
+                setStep(0);
+                setUserAnswers([]);
+                setCorrectAnswers(0);
+                setSeconds(0);
+                setTimerRunning(true);
+              }}
+            >
+              Take Quiz
+            </Button>
+          </>
+        )}
+
+        {/* ======================== PAGE 2 ======================== */}
+        {page === "test" && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="font-bold text-2xl">Quick Test</h1>
+              <div className="text-gray-500 text-lg">
+                Time: {Math.floor(seconds / 60)}:
+                {(seconds % 60).toString().padStart(2, "0")}
               </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      {page === "last" && result && (
-        <div className="w-[600px] h-fit ml-64">
-          <div className="mx-7">
-            <div className="flex justify-between w-[600px]">
-              <div className="flex gap-2">
-                <img src="/Vector.svg" />
-                <div className="font-bold text-[32px]">Quiz completed</div>
-              </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline">X</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="p-6 border-2 rounded-xl w-[500px]">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-2xl font-bold mb-2">
+                    Are you sure?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-red-600 mb-4">
+                    If you press 'Cancel', this quiz will restart from the
+                    beginning.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex justify-between">
+                  <AlertDialogCancel className="bg-black text-white w-44 h-10 rounded-md">
+                    Go Back
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-white text-black border-2 w-44 h-10 rounded-md"
+                    onClick={() => {
+                      setPage("page");
+                      setStep(0);
+                      setUserAnswers([]);
+                      setCorrectAnswers(0);
+                      setTimerRunning(false);
+                    }}
+                  >
+                    Cancel Quiz
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <div className="mb-4 text-gray-500">
+              Question {step + 1} / {result.data.Quiz.length}
+            </div>
+
+            <div className="mb-6 font-semibold text-lg">
+              {result.data.Quiz[step].question}
+            </div>
+            <div className="flex flex-col gap-2">
+              {result.data.Quiz[step].options.map((opt, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  onClick={() => HandleOnAnswer(idx)}
+                >
+                  {opt}
+                </Button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ======================== PAGE 3 ======================== */}
+        {page === "last" && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="font-bold text-2xl">Quiz Completed</h1>
               <Button
-                className="bg-white text-black border-2"
+                variant="outline"
                 onClick={() => {
                   setPage("page");
                   setStep(0);
-                  setCorrectAnswers(0);
                   setUserAnswers([]);
+                  setCorrectAnswers(0);
                 }}
               >
                 X
               </Button>
             </div>
 
-            <div className="mt-2 text-[#71717A]">Here’s your score</div>
-            <div className="mt-6 border-2 bg-white rounded-md w-[600px] p-6">
-              <div className="font-bold text-[32px]">
-                Your score: {correctAnswers}
-                <span className="text-[#71717A] text-[20px]">
-                  / {result.data.length}
-                </span>
-              </div>
+            <div className="text-gray-500 mb-2">Your score:</div>
+            <div className="font-bold text-xl mb-2">
+              {correctAnswers} / {result.data.Quiz.length}
+            </div>
+            <div className="text-gray-500 mb-4">
+              Time spent: {Math.floor(seconds / 60)}:
+              {(seconds % 60).toString().padStart(2, "0")}
+            </div>
 
-              <div className="mt-5">
-                {userAnswers.map((ans, index) => (
-                  <div key={index} className="flex gap-3 mb-4">
-                    <img
-                      src={ans.isCorrect ? "/rigth.svg" : "/wrong.svg"}
-                      className="w-6 h-6 mt-1"
-                    />
-                    <div>
-                      <div className="text-[#737373] font-medium">
-                        {index + 1}. {ans.question}
-                      </div>
-                      <div className="text-[#171717]">
-                        Your answer: {ans.selected}
-                      </div>
-                      <div
-                        className={
-                          ans.isCorrect ? "text-[#22C55E]" : "text-[#EF4444]"
-                        }
-                      >
-                        Correct: {ans.correct}
-                      </div>
+            <div className="space-y-3 mb-4">
+              {userAnswers.map((ans, idx) => (
+                <div key={idx} className="flex gap-2 items-start border-b pb-2">
+                  <img
+                    src={ans.isCorrect ? "/rigth.svg" : "/wrong.svg"}
+                    className="w-5 h-5 mt-1"
+                  />
+                  <div>
+                    <div className="text-gray-700">
+                      {idx + 1}. {ans.question}
+                    </div>
+                    <div className="text-gray-800">
+                      Your answer: {ans.selected}
+                    </div>
+                    <div
+                      className={
+                        ans.isCorrect ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      Correct: {ans.correct}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="flex justify-between my-7">
-                <Button
-                  className="w-44 h-10 bg-white text-black border-2 text-[20px]"
-                  onClick={() => {
-                    setStep(0);
-                    setCorrectAnswers(0);
-                    setUserAnswers([]);
-                    setPage("test");
-                  }}
-                >
-                  <img src="/reload.svg" /> Restart quiz
-                </Button>
-                <Button onClick={() => router.push(`/`)} className="w-44 h-10">
-                  <img src="/favorite.svg" />
-                  Save and leave
-                </Button>
-              </div>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-      )}
+
+            <div className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStep(0);
+                  setUserAnswers([]);
+                  setCorrectAnswers(0);
+                  setPage("test");
+                  setSeconds(0);
+                  setTimerRunning(true);
+                }}
+              >
+                Restart Quiz
+              </Button>
+              <Button onClick={() => router.push(`/`)}>Save and Leave</Button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
