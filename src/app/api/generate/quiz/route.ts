@@ -27,6 +27,7 @@ Return valid JSON like:
       model: "gemini-2.5-flash",
       contents: prompt,
     });
+    console.log({ aiResponse });
 
     const text = (aiResponse as any).text ?? aiResponse;
 

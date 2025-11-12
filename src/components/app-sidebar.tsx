@@ -32,11 +32,8 @@ export function AppSidebar() {
   }, []);
   console.log({ history });
   const HistoryOnclick = async (data: { id: string }) => {
-    console.log("djsdfbd", data);
     const ID = data.id;
-    console.log("appsidebar", ID);
-    // router.push(`/history?id=${ID}`);
-    router.push(`/turshih?search=${ID}`);
+    router.push(`/history?search=${ID}`);
   };
   const DeleteTitle = async (data: { id: string }) => {
     if (confirm("Are u sure ?") === true) {

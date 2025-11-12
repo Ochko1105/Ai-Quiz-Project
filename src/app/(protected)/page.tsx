@@ -118,8 +118,8 @@ export default function ArticleQuiz() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-10 flex justify-center">
-      <div className="w-full max-w-[700px]">
+    <div className="bg-gray-100 w-screen min-h-screen p-10 flex justify-center">
+      <div className="w-full max-w-[700px] mt-50 ml-50">
         {/* ================= START PAGE ================= */}
         {page === "start" && (
           <div className="bg-white border rounded-md p-6">
