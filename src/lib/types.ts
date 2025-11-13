@@ -1,12 +1,10 @@
 export type HistoryDataType = {
-  user: userData[];
+  user: { id: string };
 
-  data: {
-    quiz: { id: string; question: string; answer: string; options: string[] }[];
-    title: string;
-    summary: string;
-    content: string;
-  };
+  quiz: { id: string; question: string; answer: string; options: string[] }[];
+  title: string;
+  summary: string;
+  content: string;
 };
 export type userData = {
   id: string;

@@ -10,28 +10,30 @@ import {
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { History } from "@/lib/types";
+import { useUser } from "@clerk/nextjs";
 
 export function AppSidebar() {
   const router = useRouter();
+  const { user } = useUser();
 
   const [history, SetHistory] = useState<History[]>([]);
   const getHistory = async () => {
+    if (!user) {
+      return;
+    }
     const result = await fetch("/api/generate/summary");
 
     const responseData = await result.json();
 
     const { data } = responseData;
-    console.log("shine history", data);
-    console.log({ data });
 
     SetHistory(data);
   };
   useEffect(() => {
     getHistory();
-  }, []);
-  console.log({ history });
+  }, [user]);
+
   const HistoryOnclick = async (data: { id: string }) => {
-    console.log("historydeerh data", data);
     const ID = data.id;
     router.push(`/history?search=${ID}`);
   };

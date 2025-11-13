@@ -22,8 +22,6 @@ export default function ArticleQuiz() {
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
-  console.log({ user });
-
   // 🧠 Summary үүсгэх
   const handleGenerateSummary = async () => {
     if (!user) {
@@ -102,7 +100,6 @@ export default function ArticleQuiz() {
     else setStep(step + 1);
   };
 
-  // 🚀 Reset function
   const resetAll = () => {
     setArticleContent("");
     setArticleTitle("");

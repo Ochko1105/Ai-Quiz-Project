@@ -48,7 +48,7 @@ const LastPage = ({
 
       <div className="text-gray-500 mb-2">Your score:</div>
       <div className="font-bold text-xl mb-2">
-        {correctAnswers} / {result.data.quiz.length}
+        {correctAnswers} / {result.quiz.length}
       </div>
       <div className="text-gray-500 mb-4">
         Time spent: {Math.floor(seconds / 60)}:

@@ -5,8 +5,6 @@ import { HistoryDataType, UserAnswer } from "@/lib/types";
 import LastPage from "@/components/Home/LastPage";
 import TestPage from "@/components/Home/TestPage";
 import HomePage from "@/components/Home/Homepage";
-import HistoryDrawer from "@/components/Home/turshih";
-import QuizHistory from "@/components/Home/Chatgpt";
 
 export default function SearchBar() {
   const [result, setResult] = useState<HistoryDataType | null>(null);
@@ -34,9 +32,16 @@ export default function SearchBar() {
         body: JSON.stringify({ articleID }),
         cache: "no-store",
       });
-      const responseData = await response.json();
-      console.log({ responseData });
-      setResult(responseData);
+
+      const { data } = await response.json();
+
+      if (!data) {
+        console.warn("No history data found for this article");
+        setResult(null);
+        return;
+      }
+
+      setResult(data);
     } catch (err) {
       console.error("Error fetching history:", err);
     }
@@ -57,7 +62,7 @@ export default function SearchBar() {
   const HandleOnAnswer = (optionIndex: number) => {
     if (!result || articleID === null) return;
 
-    const current = result.data.quiz[step];
+    const current = result.quiz[step];
     const correctIndex = parseInt(current.answer);
     const isCorrect = optionIndex === correctIndex;
     const selected = current.options[optionIndex];
@@ -78,7 +83,7 @@ export default function SearchBar() {
     setUserAnswers(updatedAnswers);
 
     const next = step + 1;
-    if (next >= result.data.quiz.length) {
+    if (next >= result.quiz.length) {
       setPage("last");
       setTimerRunning(false);
     } else {
@@ -92,15 +97,15 @@ export default function SearchBar() {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
     try {
-      const res = await fetch(`${baseUrl}/api/save-quiz`, {
+      const res = await fetch(`${baseUrl}/api/history/save-quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ID: articleID, // article ID
-          user: result?.user[0].id, // user объект
-          userAnswers, // quiz-ийн хариултууд
-          correctAnswers, // зөв хариултуудын тоо
-          timeSpent: seconds, // цаг хугацаа
+          ID: articleID,
+          user: result?.user.id,
+          userAnswers,
+          correctAnswers,
+          timeSpent: seconds,
         }),
       });
 
@@ -124,7 +129,7 @@ export default function SearchBar() {
       <div className="w-[600px] border-2 bg-white rounded-xl p-6">
         {page === "page" && (
           <HomePage
-            userid={result?.user[0].id}
+            userid={result.user.id}
             setSeconds={setSeconds}
             setPage={setPage}
             setStep={setStep}

@@ -11,18 +11,21 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const user = await prisma.user.findMany();
 
+    // Article болон холбоотой quiz, attempt, score, user-г хамтад нь татах
     const article = await prisma.article.findUnique({
       where: { id: Number(articleID) },
       include: {
         quiz: {
           include: {
-            quizattempt: true, // бүх хэрэглэгчийн оролдлого
-            userscore: true, // бүх хэрэглэгчийн оноо
+            quizanswer: true,
+            userscore: true,
+            quizattempt: {
+              include: { quizanswer: true, user: true },
+            },
           },
         },
-        user: true, // article үүсгэсэн хэрэглэгчийн мэдээлэл
+        user: true,
       },
     });
 
@@ -36,7 +39,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       message: "Article мэдээлэл амжилттай татагдлаа",
       data: article,
-      user: user,
     });
   } catch (error: any) {
     console.error("Error fetching article by ID:", error);

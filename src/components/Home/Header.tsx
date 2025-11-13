@@ -6,16 +6,13 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
-  useUser,
 } from "@clerk/nextjs";
 import Link from "next/link";
 import React from "react";
-import { FaRegUserCircle } from "react-icons/fa";
+
 import { Button } from "../ui/button";
 
 const Header = () => {
-  const { user } = useUser();
-  console.log({ user });
   return (
     <ClerkProvider>
       <div className="w-screen h-16 items-center flex border-b-2 fixed  bg-accent ">

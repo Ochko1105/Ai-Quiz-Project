@@ -18,9 +18,8 @@ export default function HistoryDrawer({
 
     const res = await fetch(`/api/history/user?userId=${userId}`);
     const data = await res.json();
-    console.log({ data });
 
-    setHistory(data.data?.attempts || []); // quizattempt list
+    setHistory(data.data?.attempts || []);
     setLoading(false);
   };
 
