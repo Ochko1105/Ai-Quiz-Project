@@ -9,13 +9,11 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
+import { History } from "@/lib/types";
 
 export function AppSidebar() {
   const router = useRouter();
-  type History = {
-    title: string;
-    id: string;
-  };
+
   const [history, SetHistory] = useState<History[]>([]);
   const getHistory = async () => {
     const result = await fetch("/api/generate/summary");
@@ -23,6 +21,7 @@ export function AppSidebar() {
     const responseData = await result.json();
 
     const { data } = responseData;
+    console.log("shine history", data);
     console.log({ data });
 
     SetHistory(data);
@@ -32,6 +31,7 @@ export function AppSidebar() {
   }, []);
   console.log({ history });
   const HistoryOnclick = async (data: { id: string }) => {
+    console.log("historydeerh data", data);
     const ID = data.id;
     router.push(`/history?search=${ID}`);
   };
@@ -56,7 +56,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="mt-16">
+    <Sidebar className="mt-16 ">
       <div className="flex items-center mx-4 justify-between  gap-20 mt-4 ">
         <div className="font-extrabold h-7">History</div>
         <SidebarTrigger className="h-6 w-6 " />

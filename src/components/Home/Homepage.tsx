@@ -1,6 +1,17 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { HistoryDataType, UserAnswer } from "@/lib/types";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 import { LuBookOpen } from "react-icons/lu";
 import Link from "next/link";
@@ -13,6 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import HistoryDrawer from "./turshih";
 
 const HomePage = ({
   setPage,
@@ -22,7 +34,9 @@ const HomePage = ({
   result,
   setSeconds,
   setTimerRunning,
+  userid,
 }: {
+  userid: string | number;
   setSeconds: Function;
   setPage: Function;
   setStep: Function;
@@ -89,6 +103,10 @@ const HomePage = ({
       >
         Take Quiz
       </Button>
+
+      <div className="mt-10">
+        <HistoryDrawer userId={userid} />
+      </div>
     </div>
   );
 };

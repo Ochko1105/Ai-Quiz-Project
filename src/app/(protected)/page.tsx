@@ -1,23 +1,12 @@
 "use client";
-
+import { toast } from "sonner";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
-
-type Question = {
-  question: string;
-  options: string[];
-  answer: string;
-};
-
-type UserAnswer = {
-  question: string;
-  selected: string;
-  correct: string;
-  isCorrect: boolean;
-};
+import { Question, UserAnswer } from "@/lib/types";
+import { useUser } from "@clerk/nextjs";
 
 export default function ArticleQuiz() {
   const [page, setPage] = useState<"start" | "summary" | "quiz" | "result">(
@@ -32,16 +21,25 @@ export default function ArticleQuiz() {
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { user } = useUser();
+  console.log({ user });
 
   // 🧠 Summary үүсгэх
   const handleGenerateSummary = async () => {
+    if (!user) {
+      alert("Ta ehleed newterj ornuu");
+    }
     if (!articleContent || !articleTitle) return;
     try {
       setLoading(true);
-      const res = await fetch("/api/generate", {
+      const res = await fetch("/api/generate/summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ articlecontent: articleContent, articleTitle }),
+        body: JSON.stringify({
+          articlecontent: articleContent,
+          articleTitle,
+          user,
+        }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -119,7 +117,7 @@ export default function ArticleQuiz() {
 
   return (
     <div className="bg-gray-100 w-screen min-h-screen p-10 flex justify-center">
-      <div className="w-full max-w-[700px] mt-50 ml-50">
+      <div className="w-full max-w-[700px] mt-50 ml-10">
         {/* ================= START PAGE ================= */}
         {page === "start" && (
           <div className="bg-white border rounded-md p-6">
@@ -144,7 +142,10 @@ export default function ArticleQuiz() {
               onChange={(e) => setArticleContent(e.target.value)}
             />
             <div className="flex justify-end mt-4">
-              <Button onClick={handleGenerateSummary} disabled={loading}>
+              <Button
+                onClick={handleGenerateSummary}
+                disabled={!articleContent}
+              >
                 {loading ? "Generating..." : "Generate Summary"}
               </Button>
             </div>

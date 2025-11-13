@@ -3,35 +3,46 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { ID } = await req.json();
+    const { userID } = await req.json();
 
-    if (!ID) {
+    if (!userID) {
       return NextResponse.json(
-        { error: "Article ID заавал хэрэгтэй" },
+        { error: "User ID заавал хэрэгтэй" },
         { status: 400 }
       );
     }
 
-    const article = await prisma.article.findUnique({
-      where: { id: Number(ID) },
+    const userArticles = await prisma.article.findMany({
+      where: { userid: Number(userID) },
       include: {
-        Quiz: {
-          select: {
-            question: true,
-            options: true,
-            answer: true,
+        quiz: {
+          include: {
+            quizattempt: {
+              where: { userid: Number(userID) }, // тухайн хэрэглэгчийн оруулсан quizattempt
+            },
+            userscore: {
+              where: { userid: Number(userID) }, // тухайн хэрэглэгчийн авсан userscore
+            },
           },
         },
       },
+      orderBy: { id: "desc" },
     });
 
-    if (!article) {
-      return NextResponse.json({ error: "Article олдсонгүй" }, { status: 404 });
+    if (userArticles.length === 0) {
+      return NextResponse.json({
+        message: "Энэ хэрэглэгч ямар ч нийтлэл үүсгээгүй байна.",
+        data: [],
+      });
     }
 
-    return NextResponse.json({ data: article });
+    return NextResponse.json({
+      message:
+        "User-ийн нийтлэл, quiz, quizattempt, userscore мэдээлэл амжилттай татагдлаа",
+      data: userArticles,
+    });
   } catch (error: any) {
-    console.error("Error fetching article history:", error);
+    console.error("Error fetching user history:", error);
     return NextResponse.json(
       { error: error.message ?? "Unknown error" },
       { status: 500 }

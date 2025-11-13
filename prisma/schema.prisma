@@ -8,33 +8,76 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Article {
-  id         Int          @id @default(autoincrement())
-  title      String?      @db.VarChar(1000)
-  content    String?
-  summary    String?
-  Quiz       Quiz[]
-  QuizResult QuizResult[]
+model user {
+  id          Int           @id @default(autoincrement())
+  clerk_id    String?
+  email       String?       @unique
+  name        String?
+  createdat   DateTime?     @default(now()) @db.Timestamp(6)
+  updateat    DateTime?     @default(now()) @db.Timestamp(6)
+  article     article[]
+  quizattempt quizattempt[]
+  userscore   userscore[]
 }
 
-model Quiz {
+model article {
   id        Int       @id @default(autoincrement())
-  question  String?
-  options   Json?
-  answer    String?   @db.VarChar(50)
-  articleid Int?
-  createdat DateTime? @default(now()) @db.Timestamptz(6)
-  updatedat DateTime? @default(now()) @db.Timestamptz(6)
-  Article   Article?  @relation(fields: [articleid], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  title     String?
+  content   String?
+  summary   String?
+  userid    Int?
+  createdat DateTime? @default(now()) @db.Timestamp(6)
+  updateat  DateTime? @default(now()) @db.Timestamp(6)
+  user      user?     @relation(fields: [userid], references: [id])
+  quiz      quiz[]
 }
 
-model QuizResult {
-  id             Int      @id @default(autoincrement())
-  articleid      Int
-  correctAnswers Int
-  timeSpent      Int
-  answers        Json     @db.Json
-  createdAt      DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt      DateTime @default(now()) @db.Timestamptz(6)
-  Article        Article  @relation(fields: [articleid], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model quiz {
+  id          Int           @id @default(autoincrement())
+  question    String?
+  options     String[]
+  answer      String?
+  articleid   Int?
+  createdat   DateTime?     @default(now()) @db.Timestamp(6)
+  updatedat   DateTime?     @default(now()) @db.Timestamp(6)
+  article     article?      @relation(fields: [articleid], references: [id])
+  quizattempt quizattempt[]
+  userscore   userscore[]
+  quizanswer  quizanswer[]
+}
+
+model quizattempt {
+  id          Int           @id @default(autoincrement())
+  quizid      Int?
+  userid      Int?
+  score       Int?
+  timespent   Int?
+  createdat   DateTime?     @default(now()) @db.Timestamptz(6)
+  quiz        quiz?         @relation(fields: [quizid], references: [id])
+  user        user?         @relation(fields: [userid], references: [id])
+  quizanswer  quizanswer[]
+}
+
+model quizanswer {
+  id            Int          @id @default(autoincrement())
+  quizattemptid Int?
+  quizid        Int?
+  question      String?
+  selected      String?
+  correct       String?
+  iscorrect     Boolean?
+  createdat     DateTime?    @default(now()) @db.Timestamptz(6)
+
+  quizattempt   quizattempt? @relation(fields: [quizattemptid], references: [id], onDelete: Cascade)
+  quiz          quiz?        @relation(fields: [quizid], references: [id])
+}
+
+model userscore {
+  id        Int       @id @default(autoincrement())
+  quizid    Int?
+  userid    Int?
+  score     Int?
+  createdat DateTime? @default(now()) @db.Timestamptz(6)
+  quiz      quiz?     @relation(fields: [quizid], references: [id])
+  user      user?     @relation(fields: [userid], references: [id])
 }

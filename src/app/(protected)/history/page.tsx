@@ -5,6 +5,8 @@ import { HistoryDataType, UserAnswer } from "@/lib/types";
 import LastPage from "@/components/Home/LastPage";
 import TestPage from "@/components/Home/TestPage";
 import HomePage from "@/components/Home/Homepage";
+import HistoryDrawer from "@/components/Home/turshih";
+import QuizHistory from "@/components/Home/Chatgpt";
 
 export default function SearchBar() {
   const [result, setResult] = useState<HistoryDataType | null>(null);
@@ -16,20 +18,24 @@ export default function SearchBar() {
   const [timerRunning, setTimerRunning] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const ID = searchParams.get("search");
+  const articleID = searchParams.get("search");
+
+  // Жишээ user объект
 
   // =================== Backend data татах ===================
-  const GetHistory = async (ID: string | null) => {
-    if (!ID) return;
+  const GetHistory = async (articleID: string | null) => {
+    if (!articleID) return;
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     try {
-      const response = await fetch(`${baseUrl}/api/history`, {
+      const response = await fetch(`${baseUrl}/api/history/article`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ID }),
+        body: JSON.stringify({ articleID }),
         cache: "no-store",
       });
       const responseData = await response.json();
+      console.log({ responseData });
       setResult(responseData);
     } catch (err) {
       console.error("Error fetching history:", err);
@@ -37,8 +43,8 @@ export default function SearchBar() {
   };
 
   useEffect(() => {
-    GetHistory(ID);
-  }, [ID]);
+    GetHistory(articleID);
+  }, [articleID]);
 
   // =================== Timer ===================
   useEffect(() => {
@@ -47,10 +53,11 @@ export default function SearchBar() {
     return () => clearInterval(interval);
   }, [timerRunning]);
 
-  // =================== Quiz хариулт ===================
+  // =================== quiz хариулт ===================
   const HandleOnAnswer = (optionIndex: number) => {
-    if (!result) return;
-    const current = result.data.Quiz[step];
+    if (!result || articleID === null) return;
+
+    const current = result.data.quiz[step];
     const correctIndex = parseInt(current.answer);
     const isCorrect = optionIndex === correctIndex;
     const selected = current.options[optionIndex];
@@ -60,29 +67,50 @@ export default function SearchBar() {
 
     const updatedAnswers = [
       ...userAnswers,
-      { question: current.question, selected, correct, isCorrect },
+      {
+        quizID: current.id, // quiz id-г шууд дамжуулна
+        question: current.question,
+        selected,
+        correct,
+        isCorrect,
+      },
     ];
     setUserAnswers(updatedAnswers);
 
     const next = step + 1;
-    if (next >= result.data.Quiz.length) {
+    if (next >= result.data.quiz.length) {
       setPage("last");
-      setTimerRunning(false); // timer зогсоох
+      setTimerRunning(false);
+    } else {
+      setStep(next);
+    }
+  };
 
-      // Backend руу хадгалах
-      const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-      fetch(`${baseUrl}/api/save-quiz`, {
+  // =================== Quiz хадгалах ===================
+  const SaveAndLeave = async () => {
+    if (!articleID) return;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+    try {
+      const res = await fetch(`${baseUrl}/api/save-quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ID,
-          userAnswers: updatedAnswers,
-          correctAnswers: isCorrect ? correctAnswers + 1 : correctAnswers,
-          timeSpent: seconds,
+          ID: articleID, // article ID
+          user: result?.user[0].id, // user объект
+          userAnswers, // quiz-ийн хариултууд
+          correctAnswers, // зөв хариултуудын тоо
+          timeSpent: seconds, // цаг хугацаа
         }),
-      }).catch(console.error);
-    } else setStep(next);
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Backend error:", text);
+      }
+    } catch (err) {
+      console.error("Failed to save quiz:", err);
+    }
   };
 
   if (!result)
@@ -92,57 +120,50 @@ export default function SearchBar() {
 
   // ======================== Render ========================
   return (
-    <div className="mt-50 ml-50 flex justify-center  ">
-      <div className="w-[600px] border-2 bg-white rounded-xl p-6 ">
-        {/* ======================== PAGE 1 ======================== */}
+    <div className="mt-50 ml-50 flex justify-center">
+      <div className="w-[600px] border-2 bg-white rounded-xl p-6">
         {page === "page" && (
-          <>
-            <HomePage
-              setSeconds={setSeconds}
-              setPage={setPage}
-              setStep={setStep}
-              setCorrectAnswers={setCorrectAnswers}
-              setUserAnswers={setUserAnswers}
-              result={result}
-              setTimerRunning={setTimerRunning}
-            ></HomePage>
-          </>
+          <HomePage
+            userid={result?.user[0].id}
+            setSeconds={setSeconds}
+            setPage={setPage}
+            setStep={setStep}
+            setCorrectAnswers={setCorrectAnswers}
+            setUserAnswers={setUserAnswers}
+            result={result}
+            setTimerRunning={setTimerRunning}
+          />
         )}
 
-        {/* ======================== PAGE 2 ======================== */}
         {page === "test" && (
-          <>
-            <TestPage
-              step={step}
-              HandleOnAnswer={HandleOnAnswer}
-              setPage={setPage}
-              setStep={setStep}
-              setCorrectAnswers={setCorrectAnswers}
-              setUserAnswers={setUserAnswers}
-              result={result}
-              setTimerRunning={setTimerRunning}
-              seconds={seconds}
-            ></TestPage>
-          </>
+          <TestPage
+            step={step}
+            HandleOnAnswer={HandleOnAnswer}
+            setPage={setPage}
+            setStep={setStep}
+            setCorrectAnswers={setCorrectAnswers}
+            setUserAnswers={setUserAnswers}
+            result={result}
+            setTimerRunning={setTimerRunning}
+            seconds={seconds}
+          />
         )}
 
-        {/* ======================== PAGE 3 ======================== */}
         {page === "last" && (
-          <>
-            <LastPage
-              setPage={setPage}
-              setStep={setStep}
-              setCorrectAnswers={setCorrectAnswers}
-              setSeconds={setSeconds}
-              setUserAnswers={setUserAnswers}
-              result={result}
-              correctAnswers={correctAnswers}
-              router={router}
-              userAnswers={userAnswers}
-              setTimerRunning={setTimerRunning}
-              seconds={seconds}
-            ></LastPage>
-          </>
+          <LastPage
+            SaveAndLeave={SaveAndLeave}
+            setPage={setPage}
+            setStep={setStep}
+            setCorrectAnswers={setCorrectAnswers}
+            setSeconds={setSeconds}
+            setUserAnswers={setUserAnswers}
+            result={result}
+            correctAnswers={correctAnswers}
+            router={router}
+            userAnswers={userAnswers}
+            setTimerRunning={setTimerRunning}
+            seconds={seconds}
+          />
         )}
       </div>
     </div>
