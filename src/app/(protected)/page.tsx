@@ -82,7 +82,7 @@ export default function ArticleQuiz() {
     }
   };
 
-  // ✅ Хариулт шалгах
+  // Хариулт шалгах
   const handleAnswer = (idx: number) => {
     const current = questions[step];
     const correctIndex = parseInt(current.answer);

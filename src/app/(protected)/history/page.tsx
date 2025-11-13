@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -82,14 +83,6 @@ export default function SearchBar() {
     const interval = setInterval(() => setSeconds((prev) => prev + 1), 1000);
     return () => clearInterval(interval);
   }, [timerRunning]);
-  // useEffect(() => {
-  //   if (page === "test") {
-  //     const interval = setInterval(() => {
-  //       setSeconds((prev) => prev + 1);
-  //     }, 1000);
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [page]);
 
   // =================== Quiz хариулт ===================
   const HandleOnAnswer = (optionIndex: number) => {
@@ -130,12 +123,14 @@ export default function SearchBar() {
   };
 
   if (!result)
-    return <div className="text-center mt-20 text-gray-500">Loading...</div>;
+    return (
+      <div className="text-center ml-50 mt-50 text-gray-500">Loading...</div>
+    );
 
   // ======================== Render ========================
   return (
-    <div className="mt-20 flex justify-center">
-      <div className="w-[600px] border-2 bg-white rounded-xl p-6">
+    <div className="mt-50 ml-50 flex justify-center  ">
+      <div className="w-[600px] border-2 bg-white rounded-xl p-6 ">
         {/* ======================== PAGE 1 ======================== */}
         {page === "page" && (
           <>
@@ -158,9 +153,8 @@ export default function SearchBar() {
             <div className="mb-4">{result.data.summary}</div>
 
             <div className="text-gray-500 mb-2">Content:</div>
-            <div className="h-20 overflow-hidden text-ellipsis mb-4">
-              {result.data.content}
-            </div>
+
+            <div className="h-10 truncate mb-4">{result.data.content}</div>
 
             <Dialog>
               <DialogTrigger asChild>
@@ -175,8 +169,11 @@ export default function SearchBar() {
                   </DialogTitle>
                 </DialogHeader>
                 <div className="text-gray-700">{result.data.content}</div>
+
                 <div className="flex justify-end mt-4">
-                  <Button onClick={() => {}}>Close</Button>
+                  <DialogClose asChild>
+                    <Button>Close</Button>
+                  </DialogClose>
                 </div>
               </DialogContent>
             </Dialog>
@@ -206,7 +203,8 @@ export default function SearchBar() {
                 Time: {Math.floor(seconds / 60)}:
                 {(seconds % 60).toString().padStart(2, "0")}
               </div>
-              <div className="ml-10">
+
+              <div className="ml-67">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="outline">X</Button>
@@ -221,7 +219,7 @@ export default function SearchBar() {
                         beginning.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter className="flex justify-between">
+                    <AlertDialogFooter className="flex justify-between ">
                       <AlertDialogCancel className="bg-black text-white w-44 h-10 rounded-md">
                         Go Back
                       </AlertDialogCancel>
@@ -242,14 +240,18 @@ export default function SearchBar() {
                 </AlertDialog>
               </div>
             </div>
-
-            <div className="mb-4 text-gray-500">
-              Question {step + 1} / {result.data.Quiz.length}
+            <div className="text-[#71717A]">
+              Take a quick test about your knowledge from your content{" "}
+            </div>
+            <div className="flex items-center justify-between mt-5">
+              <div className="mb-6 font-semibold text-lg ">
+                {result.data.Quiz[step].question}
+              </div>
+              <div className="mb-4 text-gray-500 ">
+                {step + 1} / {result.data.Quiz.length}
+              </div>
             </div>
 
-            <div className="mb-6 font-semibold text-lg">
-              {result.data.Quiz[step].question}
-            </div>
             <div className="flex flex-wrap gap-2">
               {result.data.Quiz[step].options.map((opt, idx) => (
                 <Button
