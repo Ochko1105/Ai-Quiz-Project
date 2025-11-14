@@ -31,7 +31,6 @@ const HomePage = ({
   setUserAnswers: Function;
   setCorrectAnswers: Function;
   result: HistoryDataType;
-
   setTimerRunning: Function;
 }) => {
   const GoToTest = () => {
@@ -95,7 +94,7 @@ const HomePage = ({
       </Button>
 
       <div className="mt-10">
-        <HistoryDrawer userId={userid} />
+        <HistoryDrawer result={result.title} userId={userid} />
       </div>
     </div>
   );

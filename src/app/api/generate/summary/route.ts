@@ -18,7 +18,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const { articlecontent, articleTitle, user } = await req.json();
-    console.log({ user });
 
     if (!articlecontent || !articleTitle) {
       return NextResponse.json(

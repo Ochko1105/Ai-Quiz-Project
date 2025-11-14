@@ -1,11 +1,17 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
+import { SignIn, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
 const Login = () => {
-  const { user } = useUser();
-
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
   console.log({ user });
+  useEffect(() => {
+    if (isLoaded && user) {
+      router.push("/");
+    }
+  }, [isLoaded, user]);
 
   const SaveUserInfo = async () => {
     if (!user) {
@@ -28,7 +34,11 @@ const Login = () => {
     SaveUserInfo();
   }, [user]);
 
-  return <div>{user?.fullName}</div>;
+  return (
+    <div className="mt-100 ml-150">
+      <SignIn routing="hash" />
+    </div>
+  );
 };
 
 export default Login;

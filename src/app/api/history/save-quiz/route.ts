@@ -10,6 +10,7 @@ type UserAnswer = {
 };
 
 type BodyType = {
+  articletitle: string;
   user: number;
   articleID: number;
   userAnswers: UserAnswer[];
@@ -20,7 +21,14 @@ type BodyType = {
 export async function POST(req: NextRequest) {
   try {
     const body: BodyType = await req.json();
-    const { user, articleID, userAnswers, correctAnswers, timeSpent } = body;
+    const {
+      user,
+      articleID,
+      userAnswers,
+      correctAnswers,
+      timeSpent,
+      articletitle,
+    } = body;
 
     // QuizAttempt үүсгэх
     const quizAttempt = await prisma.quizattempt.create({
@@ -28,6 +36,7 @@ export async function POST(req: NextRequest) {
         userid: user,
         timespent: timeSpent,
         score: correctAnswers,
+        articletitle: articletitle,
       },
     });
 

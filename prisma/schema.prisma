@@ -42,23 +42,22 @@ model quiz {
   updatedat   DateTime?     @default(now()) @db.Timestamp(6)
   article     article?      @relation(fields: [articleid], references: [id])
   quizanswer  quizanswer[]
+  quizattempt quizattempt[]
   userscore   userscore[]
-  quizattempt quizattempt[]  // ← энэ мөр нэмэгдэнэ
 }
-
 
 model quizattempt {
-  id         Int          @id @default(autoincrement())
-  userid     Int?
-  score      Int?
-  timespent  Int?
-  createdat  DateTime?    @default(now()) @db.Timestamptz(6)
-  quizid     Int?
-  quizanswer quizanswer[]
-  user       user?        @relation(fields: [userid], references: [id])
-  quiz       quiz?        @relation(fields: [quizid], references: [id]) // ← энэ relation байх ёстой
+  id           Int          @id @default(autoincrement())
+  userid       Int?
+  score        Int?
+  timespent    Int?
+  createdat    DateTime?    @default(now()) @db.Timestamptz(6)
+  quizid       Int?
+  articletitle String?
+  quizanswer   quizanswer[]
+  quiz         quiz?        @relation(fields: [quizid], references: [id])
+  user         user?        @relation(fields: [userid], references: [id])
 }
-
 
 model quizanswer {
   id            Int          @id @default(autoincrement())

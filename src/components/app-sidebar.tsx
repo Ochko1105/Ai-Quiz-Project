@@ -19,6 +19,7 @@ export function AppSidebar() {
   const [history, SetHistory] = useState<History[]>([]);
   const getHistory = async () => {
     if (!user) {
+      SetHistory([]);
       return;
     }
     const result = await fetch("/api/generate/summary");

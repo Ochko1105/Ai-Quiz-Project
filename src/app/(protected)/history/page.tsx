@@ -18,8 +18,6 @@ export default function SearchBar() {
   const router = useRouter();
   const articleID = searchParams.get("search");
 
-  // Жишээ user объект
-
   // =================== Backend data татах ===================
   const GetHistory = async (articleID: string | null) => {
     if (!articleID) return;
@@ -73,7 +71,7 @@ export default function SearchBar() {
     const updatedAnswers = [
       ...userAnswers,
       {
-        quizID: current.id, // quiz id-г шууд дамжуулна
+        quizID: current.id,
         question: current.question,
         selected,
         correct,
@@ -102,6 +100,7 @@ export default function SearchBar() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ID: articleID,
+          articletitle: result?.title,
           user: result?.user.id,
           userAnswers,
           correctAnswers,
@@ -109,9 +108,9 @@ export default function SearchBar() {
         }),
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("Backend error:", text);
+      if (res.ok) {
+        alert("Amjilttai hadgallaa");
+        setPage("page");
       }
     } catch (err) {
       console.error("Failed to save quiz:", err);

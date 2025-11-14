@@ -6,11 +6,15 @@ import { DialogTitle } from "@radix-ui/react-dialog";
 
 export default function HistoryDrawer({
   userId,
+  result,
 }: {
+  result: any;
   userId: number | null | string;
 }) {
   const [history, setHistory] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(false);
+  console.log({ result });
 
   const fetchHistory = async () => {
     if (!userId) return;
@@ -19,13 +23,20 @@ export default function HistoryDrawer({
     const res = await fetch(`/api/history/user?userId=${userId}`);
     const data = await res.json();
 
-    setHistory(data.data?.attempts || []);
+    const filtered = data.data.attempts.filter(
+      (item: any) => item.articletitle === result
+    );
+
+    if (filtered) {
+      setHistory(filtered);
+    }
+
     setLoading(false);
   };
 
   useEffect(() => {
     fetchHistory();
-  }, [userId]);
+  }, [userId, result]);
 
   return (
     <Drawer direction="right">
@@ -34,17 +45,17 @@ export default function HistoryDrawer({
       </DrawerTrigger>
       <DrawerContent className="p-6">
         <DialogTitle></DialogTitle>
-        <h2 className="text-xl font-semibold mb-4">📜 Тестийн оролдлогууд</h2>
+        <h2 className="text-xl font-semibold mb-4"> Тестийн оролдлогууд</h2>
         {loading ? (
           <p>Татаж байна...</p>
         ) : history.length === 0 ? (
           <p className="text-gray-500">Одоогоор оролдлого алга байна.</p>
         ) : (
-          <div className="space-y-4 max-h-[400px] overflow-y-auto">
+          <div className="space-y-4 h-fit overflow-y-auto">
             {history.map((attempt, i) => (
               <div key={attempt.id} className="border rounded-lg p-4 shadow-sm">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">🧠 Оролдлого {i + 1}</span>
+                  <span className="font-medium"> Оролдлого {i + 1}</span>
                   <span className="text-sm text-gray-500">
                     {new Date(attempt.createdat).toLocaleString()}
                   </span>
