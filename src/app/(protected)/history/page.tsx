@@ -5,6 +5,7 @@ import { HistoryDataType, UserAnswer } from "@/lib/types";
 import LastPage from "@/components/Home/LastPage";
 import TestPage from "@/components/Home/TestPage";
 import HomePage from "@/components/Home/Homepage";
+import { getBaseUrl } from "@/utilis/baseUrl";
 
 export default function SearchBar() {
   const [result, setResult] = useState<HistoryDataType | null>(null);
@@ -22,9 +23,8 @@ export default function SearchBar() {
   const GetHistory = async (articleID: string | null) => {
     if (!articleID) return;
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     try {
-      const response = await fetch(`${baseUrl}/api/history/article`, {
+      const response = await fetch(`${getBaseUrl()}/api/history/article`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ articleID }),
